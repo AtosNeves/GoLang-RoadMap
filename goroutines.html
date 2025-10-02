@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goroutines e Concorrência em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Goroutines e Concorrência</h1>
+            <p class="subtitle">Execução Concorrente Leve e Eficiente</p>
+            <div class="nav-links">
+                <a href="#conceito" class="nav-link">O que são</a>
+                <a href="#criando" class="nav-link">Criando Goroutines</a>
+                <a href="#sincronizacao" class="nav-link">Sincronização</a>
+                <a href="#pratico" class="nav-link">Exemplos</a>
+            </div>
+        </header>
+        
+        <section id="conceito" class="section">
+            <h2>O que são Goroutines?</h2>
+            
+            <p>Goroutines são <strong>threads leves</strong> gerenciadas pelo runtime do Go. Elas permitem executar funções de forma concorrente com overhead mínimo.</p>
+            
+            <div class="highlight-box info">
+                <strong>Diferença Chave:</strong> Goroutines são mais leves que threads do sistema operacional. Você pode ter milhares (ou milhões!) de goroutines rodando simultaneamente, enquanto threads são limitadas.
+            </div>
+            
+            <h3>Concorrência vs Paralelismo</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">conceitos.txt</span>
+                </div>
+                <pre><code><span class="comment">// CONCORRÊNCIA: Lidar com múltiplas tarefas ao mesmo tempo</span>
+<span class="comment">// (não necessariamente executando simultaneamente)</span>
+
+<span class="comment">// PARALELISMO: Executar múltiplas tarefas simultaneamente</span>
+<span class="comment">// (requer múltiplos núcleos de CPU)</span>
+
+<span class="comment">// Go torna concorrência fácil. Paralelismo acontece automaticamente</span>
+<span class="comment">// se houver núcleos disponíveis.</span></code></pre>
+            </div>
+        </section>
+        
+        <section id="criando" class="section">
+            <h2>Criando Goroutines</h2>
+            
+            <h3>Sintaxe Básica</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">goroutine_basica.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">dizerOla</span>(nome <span class="type">string</span>) {
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">3</span>; i++ {
+        fmt.<span class="function">Printf</span>(<span class="string">"Olá, %s!\n"</span>, nome)
+        time.<span class="function">Sleep</span>(<span class="number">100</span> * time.Millisecond)
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Execução síncrona (sequencial)</span>
+    <span class="function">dizerOla</span>(<span class="string">"João"</span>)
+    <span class="function">dizerOla</span>(<span class="string">"Maria"</span>)
+    
+    fmt.<span class="function">Println</span>(<span class="string">"\n--- Agora com goroutines ---\n"</span>)
+    
+    <span class="comment">// Execução assíncrona (concorrente)</span>
+    <span class="keyword">go</span> <span class="function">dizerOla</span>(<span class="string">"Pedro"</span>)
+    <span class="keyword">go</span> <span class="function">dizerOla</span>(<span class="string">"Ana"</span>)
+    
+    <span class="comment">// Aguarda para que as goroutines terminem</span>
+    time.<span class="function">Sleep</span>(<span class="number">400</span> * time.Millisecond)
+    fmt.<span class="function">Println</span>(<span class="string">"Fim"</span>)
+}</code></pre>
+            </div>
+            
+            <h3>Goroutines Anônimas</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">goroutine_anonima.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Goroutine com função anônima</span>
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        fmt.<span class="function">Println</span>(<span class="string">"Executando em goroutine anônima"</span>)
+    }()
+    
+    <span class="comment">// Com parâmetros</span>
+    <span class="keyword">go</span> <span class="keyword">func</span>(msg <span class="type">string</span>) {
+        fmt.<span class="function">Println</span>(msg)
+    }(<span class="string">"Mensagem passada para a goroutine"</span>)
+    
+    <span class="comment">// Múltiplas goroutines</span>
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">5</span>; i++ {
+        <span class="keyword">go</span> <span class="keyword">func</span>(n <span class="type">int</span>) {
+            fmt.<span class="function">Printf</span>(<span class="string">"Goroutine %d\n"</span>, n)
+        }(i)
+    }
+    
+    time.<span class="function">Sleep</span>(<span class="number">1</span> * time.Second)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Importante:</strong> O programa principal não espera pelas goroutines. Se main() terminar, todas as goroutines são interrompidas imediatamente!
+            </div>
+        </section>
+        
+        <section id="sincronizacao" class="section">
+            <h2>Sincronização com WaitGroup</h2>
+            
+            <p>WaitGroup é usado para esperar que um grupo de goroutines termine sua execução.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">waitgroup.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(id <span class="type">int</span>, wg *sync.WaitGroup) {
+    <span class="keyword">defer</span> wg.<span class="function">Done</span>()  <span class="comment">// Decrementa o contador ao terminar</span>
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Worker %d iniciando\n"</span>, id)
+    time.<span class="function">Sleep</span>(time.Second)
+    fmt.<span class="function">Printf</span>(<span class="string">"Worker %d finalizado\n"</span>, id)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="keyword">for</span> i := <span class="number">1</span>; i <= <span class="number">5</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)  <span class="comment">// Incrementa o contador</span>
+        <span class="keyword">go</span> <span class="function">worker</span>(i, &wg)
+    }
+    
+    wg.<span class="function">Wait</span>()  <span class="comment">// Bloqueia até contador chegar a zero</span>
+    fmt.<span class="function">Println</span>(<span class="string">"Todos os workers finalizaram"</span>)
+}</code></pre>
+            </div>
+            
+            <h3>Mutex - Acesso Exclusivo</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">mutex.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+)
+
+<span class="keyword">type</span> Contador <span class="keyword">struct</span> {
+    mu    sync.Mutex
+    valor <span class="type">int</span>
+}
+
+<span class="keyword">func</span> (c *Contador) <span class="function">Incrementar</span>() {
+    c.mu.<span class="function">Lock</span>()
+    <span class="keyword">defer</span> c.mu.<span class="function">Unlock</span>()
+    c.valor++
+}
+
+<span class="keyword">func</span> (c *Contador) <span class="function">Valor</span>() <span class="type">int</span> {
+    c.mu.<span class="function">Lock</span>()
+    <span class="keyword">defer</span> c.mu.<span class="function">Unlock</span>()
+    <span class="keyword">return</span> c.valor
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    contador := &Contador{}
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="comment">// 1000 goroutines incrementando</span>
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">1000</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="keyword">func</span>() {
+            <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+            contador.<span class="function">Incrementar</span>()
+        }()
+    }
+    
+    wg.<span class="function">Wait</span>()
+    fmt.<span class="function">Printf</span>(<span class="string">"Valor final: %d\n"</span>, contador.<span class="function">Valor</span>())
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>Race Condition:</strong> Sem Mutex, múltiplas goroutines acessando a mesma variável causariam resultados imprevisíveis. Mutex garante acesso exclusivo.
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Download Concorrente</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">download_concorrente.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">baixarArquivo</span>(url <span class="type">string</span>, wg *sync.WaitGroup) {
+    <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Iniciando download: %s\n"</span>, url)
+    
+    <span class="comment">// Simula download</span>
+    time.<span class="function">Sleep</span>(time.Duration(<span class="number">2</span>) * time.Second)
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Concluído: %s\n"</span>, url)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    urls := []<span class="type">string</span>{
+        <span class="string">"https://exemplo.com/arquivo1.zip"</span>,
+        <span class="string">"https://exemplo.com/arquivo2.zip"</span>,
+        <span class="string">"https://exemplo.com/arquivo3.zip"</span>,
+        <span class="string">"https://exemplo.com/arquivo4.zip"</span>,
+    }
+    
+    <span class="keyword">var</span> wg sync.WaitGroup
+    inicio := time.<span class="function">Now</span>()
+    
+    <span class="keyword">for</span> _, url := <span class="keyword">range</span> urls {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="function">baixarArquivo</span>(url, &wg)
+    }
+    
+    wg.<span class="function">Wait</span>()
+    fmt.<span class="function">Printf</span>(<span class="string">"\nTempo total: %v\n"</span>, time.<span class="function">Since</span>(inicio))
+}</code></pre>
+            </div>
+            
+            <h3>2. Pool de Workers</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">worker_pool.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(id <span class="type">int</span>, jobs <-<span class="keyword">chan</span> <span class="type">int</span>, results <span class="keyword">chan</span><- <span class="type">int</span>, wg *sync.WaitGroup) {
+    <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+    
+    <span class="keyword">for</span> job := <span class="keyword">range</span> jobs {
+        fmt.<span class="function">Printf</span>(<span class="string">"Worker %d processando job %d\n"</span>, id, job)
+        time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+        results <- job * <span class="number">2</span>
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    numJobs := <span class="number">10</span>
+    numWorkers := <span class="number">3</span>
+    
+    jobs := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, numJobs)
+    results := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, numJobs)
+    
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="comment">// Inicia workers</span>
+    <span class="keyword">for</span> w := <span class="number">1</span>; w <= numWorkers; w++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="function">worker</span>(w, jobs, results, &wg)
+    }
+    
+    <span class="comment">// Envia jobs</span>
+    <span class="keyword">for</span> j := <span class="number">1</span>; j <= numJobs; j++ {
+        jobs <- j
+    }
+    <span class="function">close</span>(jobs)
+    
+    <span class="comment">// Aguarda workers</span>
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        wg.<span class="function">Wait</span>()
+        <span class="function">close</span>(results)
+    }()
+    
+    <span class="comment">// Coleta resultados</span>
+    <span class="keyword">for</span> result := <span class="keyword">range</span> results {
+        fmt.<span class="function">Printf</span>(<span class="string">"Resultado: %d\n"</span>, result)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>3. Rate Limiting</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">rate_limiting.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Limita a 1 requisição por segundo</span>
+    limiter := time.<span class="function">Tick</span>(<span class="number">1</span> * time.Second)
+    
+    requisicoes := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">5</span>)
+    <span class="keyword">for</span> i := <span class="number">1</span>; i <= <span class="number">5</span>; i++ {
+        requisicoes <- i
+    }
+    <span class="function">close</span>(requisicoes)
+    
+    <span class="keyword">for</span> req := <span class="keyword">range</span> requisicoes {
+        <-limiter  <span class="comment">// Aguarda o próximo tick</span>
+        fmt.<span class="function">Printf</span>(<span class="string">"Requisição %d processada às %v\n"</span>, req, time.<span class="function">Now</span>())
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Faça</h3>
+                <ul class="list">
+                    <li>Use WaitGroup para aguardar goroutines</li>
+                    <li>Use Mutex para proteger dados compartilhados</li>
+                    <li>Prefira comunicação via channels quando possível</li>
+                    <li>Feche channels quando não forem mais usados</li>
+                    <li>Use defer para garantir que Unlock seja chamado</li>
+                    <li>Limite o número de goroutines (use worker pools)</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">Evite</h3>
+                <ul class="list">
+                    <li>Criar goroutines infinitamente sem controle</li>
+                    <li>Compartilhar memória sem sincronização</li>
+                    <li>Usar time.Sleep() para sincronização</li>
+                    <li>Esquecer de chamar wg.Done()</li>
+                    <li>Acessar variáveis de loop em goroutines (copie o valor)</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Goroutines são o coração da concorrência em Go</p>
+            <p>Próximo tópico: Channels para Comunicação entre Goroutines</p>
+        </footer>
+    </div>
+</body>
+</html>

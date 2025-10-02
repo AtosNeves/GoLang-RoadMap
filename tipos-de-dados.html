@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variáveis, Tipos de Dados e Constantes em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword {
+            color: #f472b6;
+        }
+        
+        .function {
+            color: #a78bfa;
+        }
+        
+        .string {
+            color: #34d399;
+        }
+        
+        .comment {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .number {
+            color: #60a5fa;
+        }
+        
+        .type {
+            color: #fbbf24;
+        }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+        
+        .highlight-box.info {
+            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        
+        .highlight-box.success {
+            border-left-color: #34d399;
+            background: rgba(52, 211, 153, 0.05);
+        }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #b0b0b0;
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .badge.primary {
+            background: rgba(96, 165, 250, 0.15);
+            color: #60a5fa;
+        }
+        
+        .badge.success {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+        }
+        
+        .badge.warning {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 25px;
+            }
+            
+            h2 {
+                font-size: 1.6rem;
+            }
+            
+            .code-block {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Variáveis, Tipos e Constantes</h1>
+            <p class="subtitle">Fundamentos essenciais da linguagem Go</p>
+            <div class="nav-links">
+                <a href="#variaveis" class="nav-link">Variáveis</a>
+                <a href="#tipos" class="nav-link">Tipos de Dados</a>
+                <a href="#constantes" class="nav-link">Constantes</a>
+                <a href="#conversao" class="nav-link">Conversão de Tipos</a>
+            </div>
+        </header>
+        
+        <section id="variaveis" class="section">
+            <h2>Variáveis em Go</h2>
+            
+            <p>Em Go, existem diversas formas de declarar variáveis. A linguagem é estaticamente tipada, o que significa que o tipo de uma variável é definido em tempo de compilação.</p>
+            
+            <h3>1. Declaração com var</h3>
+            <p>A forma mais explícita de declarar variáveis:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">declaracao_var.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> nome <span class="type">string</span> = <span class="string">"João"</span>
+<span class="keyword">var</span> idade <span class="type">int</span> = <span class="number">25</span>
+<span class="keyword">var</span> ativo <span class="type">bool</span> = <span class="keyword">true</span>
+
+<span class="comment">// Declaração sem inicialização (valor zero)</span>
+<span class="keyword">var</span> contador <span class="type">int</span>  <span class="comment">// 0</span>
+<span class="keyword">var</span> texto <span class="type">string</span>     <span class="comment">// ""</span>
+<span class="keyword">var</span> vazio <span class="type">bool</span>       <span class="comment">// false</span></code></pre>
+            </div>
+            
+            <h3>2. Declaração com Inferência de Tipo</h3>
+            <p>Go pode inferir o tipo automaticamente:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">inferencia.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> nome = <span class="string">"Maria"</span>      <span class="comment">// string inferido</span>
+<span class="keyword">var</span> idade = <span class="number">30</span>             <span class="comment">// int inferido</span>
+<span class="keyword">var</span> salario = <span class="number">5000.50</span>      <span class="comment">// float64 inferido</span></code></pre>
+            </div>
+            
+            <h3>3. Short Declaration (Declaração Curta)</h3>
+            <p>A forma mais comum e concisa, usando o operador <code>:=</code></p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">short_declaration.go</span>
+                </div>
+                <pre><code><span class="comment">// Só pode ser usado dentro de funções</span>
+nome := <span class="string">"Carlos"</span>
+idade := <span class="number">28</span>
+ativo := <span class="keyword">true</span>
+
+<span class="comment">// Múltiplas variáveis</span>
+x, y := <span class="number">10</span>, <span class="number">20</span>
+nome, idade := <span class="string">"Ana"</span>, <span class="number">22</span></code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>⚠️ Atenção:</strong> O operador <code>:=</code> só pode ser usado dentro de funções. Para variáveis em nível de pacote, use <code>var</code>.
+            </div>
+            
+            <h3>4. Declaração em Bloco</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">bloco.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> (
+    nome     <span class="type">string</span> = <span class="string">"Pedro"</span>
+    idade    <span class="type">int</span>    = <span class="number">35</span>
+    altura   <span class="type">float64</span> = <span class="number">1.75</span>
+    casado   <span class="type">bool</span>   = <span class="keyword">true</span>
+)</code></pre>
+            </div>
+            
+            <h3>Valores Zero</h3>
+            <p>Quando uma variável é declarada sem valor inicial, ela recebe um "valor zero" baseado em seu tipo:</p>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Valor Zero</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>int, int8, int16, int32, int64</code></td>
+                            <td><code>0</code></td>
+                            <td>Zero numérico</td>
+                        </tr>
+                        <tr>
+                            <td><code>float32, float64</code></td>
+                            <td><code>0.0</code></td>
+                            <td>Zero decimal</td>
+                        </tr>
+                        <tr>
+                            <td><code>string</code></td>
+                            <td><code>""</code></td>
+                            <td>String vazia</td>
+                        </tr>
+                        <tr>
+                            <td><code>bool</code></td>
+                            <td><code>false</code></td>
+                            <td>Falso</td>
+                        </tr>
+                        <tr>
+                            <td>Ponteiros, slices, maps, channels</td>
+                            <td><code>nil</code></td>
+                            <td>Referência nula</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section id="tipos" class="section">
+            <h2>Tipos de Dados</h2>
+            
+            <p>Go possui diversos tipos de dados primitivos e compostos. Vamos explorar os principais:</p>
+            
+            <h3>Tipos Numéricos Inteiros</h3>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Tamanho</th>
+                            <th>Faixa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>int8</code></td>
+                            <td>8 bits</td>
+                            <td>-128 a 127</td>
+                        </tr>
+                        <tr>
+                            <td><code>int16</code></td>
+                            <td>16 bits</td>
+                            <td>-32.768 a 32.767</td>
+                        </tr>
+                        <tr>
+                            <td><code>int32</code></td>
+                            <td>32 bits</td>
+                            <td>-2.147.483.648 a 2.147.483.647</td>
+                        </tr>
+                        <tr>
+                            <td><code>int64</code></td>
+                            <td>64 bits</td>
+                            <td>-9.223.372.036.854.775.808 a 9.223.372.036.854.775.807</td>
+                        </tr>
+                        <tr>
+                            <td><code>int</code></td>
+                            <td>32 ou 64 bits</td>
+                            <td>Depende da arquitetura</td>
+                        </tr>
+                        <tr>
+                            <td><code>uint8</code></td>
+                            <td>8 bits</td>
+                            <td>0 a 255</td>
+                        </tr>
+                        <tr>
+                            <td><code>uint16</code></td>
+                            <td>16 bits</td>
+                            <td>0 a 65.535</td>
+                        </tr>
+                        <tr>
+                            <td><code>uint32</code></td>
+                            <td>32 bits</td>
+                            <td>0 a 4.294.967.295</td>
+                        </tr>
+                        <tr>
+                            <td><code>uint64</code></td>
+                            <td>64 bits</td>
+                            <td>0 a 18.446.744.073.709.551.615</td>
+                        </tr>
+                        <tr>
+                            <td><code>uint</code></td>
+                            <td>32 ou 64 bits</td>
+                            <td>Depende da arquitetura</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">inteiros.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> idade <span class="type">int</span> = <span class="number">25</span>
+<span class="keyword">var</span> populacao <span class="type">int64</span> = <span class="number">7800000000</span>
+<span class="keyword">var</span> byte1 <span class="type">uint8</span> = <span class="number">255</span>  <span class="comment">// byte é alias para uint8</span>
+<span class="keyword">var</span> unicode <span class="type">rune</span> = <span class="string">'A'</span>    <span class="comment">// rune é alias para int32</span></code></pre>
+            </div>
+            
+            <h3>Tipos Numéricos de Ponto Flutuante</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">float.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> preco <span class="type">float32</span> = <span class="number">19.99</span>      <span class="comment">// 32 bits, precisão ~6 casas decimais</span>
+<span class="keyword">var</span> pi <span class="type">float64</span> = <span class="number">3.14159265359</span> <span class="comment">// 64 bits, precisão ~15 casas decimais</span>
+
+<span class="comment">// Notação científica</span>
+<span class="keyword">var</span> grande <span class="type">float64</span> = <span class="number">1.5e10</span>  <span class="comment">// 15000000000</span>
+<span class="keyword">var</span> pequeno <span class="type">float64</span> = <span class="number">2.5e-3</span> <span class="comment">// 0.0025</span></code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>💡 Dica:</strong> Use <code>float64</code> como padrão para números decimais, pois é mais preciso e é o tipo padrão quando você usa inferência de tipo.
+            </div>
+            
+            <h3>Strings</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">strings.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> nome <span class="type">string</span> = <span class="string">"João Silva"</span>
+<span class="keyword">var</span> mensagem <span class="type">string</span> = <span class="string">"Olá, mundo!"</span>
+
+<span class="comment">// String multilinha (raw string literal)</span>
+<span class="keyword">var</span> texto <span class="type">string</span> = <span class="string">`
+    Esta é uma string
+    que pode ter múltiplas linhas
+    sem precisar de caracteres de escape
+`</span>
+
+<span class="comment">// Concatenação</span>
+saudacao := <span class="string">"Olá"</span> + <span class="string">", "</span> + nome
+
+<span class="comment">// Tamanho da string</span>
+tamanho := <span class="function">len</span>(nome)  <span class="comment">// número de bytes</span>
+
+<span class="comment">// Acessando caracteres</span>
+primeiraLetra := nome[<span class="number">0</span>]  <span class="comment">// byte (uint8)</span></code></pre>
+            </div>
+            
+            <h3>Boolean</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">boolean.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> ativo <span class="type">bool</span> = <span class="keyword">true</span>
+<span class="keyword">var</span> logado <span class="type">bool</span> = <span class="keyword">false</span>
+
+<span class="comment">// Operadores lógicos</span>
+resultado := ativo && logado    <span class="comment">// AND</span>
+resultado = ativo || logado     <span class="comment">// OR</span>
+resultado = !ativo              <span class="comment">// NOT</span>
+
+<span class="comment">// Comparações retornam bool</span>
+maiorIdade := idade >= <span class="number">18</span>
+igual := nome == <span class="string">"João"</span></code></pre>
+            </div>
+            
+            <h3>Tipos Especiais</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">tipos_especiais.go</span>
+                </div>
+                <pre><code><span class="comment">// byte - alias para uint8</span>
+<span class="keyword">var</span> b <span class="type">byte</span> = <span class="number">65</span>  <span class="comment">// representa 'A'</span>
+
+<span class="comment">// rune - alias para int32, representa um código Unicode</span>
+<span class="keyword">var</span> r <span class="type">rune</span> = <span class="string">'世'</span>  <span class="comment">// caractere chinês</span>
+
+<span class="comment">// uintptr - inteiro grande o suficiente para armazenar um ponteiro</span>
+<span class="keyword">var</span> ptr <span class="type">uintptr</span></code></pre>
+            </div>
+        </section>
+        
+        <section id="constantes" class="section">
+            <h2>Constantes</h2>
+            
+            <p>Constantes são valores que não podem ser alterados durante a execução do programa. São declaradas usando a palavra-chave <code>const</code>.</p>
+            
+            <h3>Declaração de Constantes</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">constantes.go</span>
+                </div>
+                <pre><code><span class="comment">// Constantes simples</span>
+<span class="keyword">const</span> Pi = <span class="number">3.14159</span>
+<span class="keyword">const</span> Nome = <span class="string">"Sistema"</span>
+<span class="keyword">const</span> Versao = <span class="number">1</span>
+
+<span class="comment">// Constantes tipadas</span>
+<span class="keyword">const</span> Idade <span class="type">int</span> = <span class="number">25</span>
+<span class="keyword">const</span> Ativo <span class="type">bool</span> = <span class="keyword">true</span>
+
+<span class="comment">// Bloco de constantes</span>
+<span class="keyword">const</span> (
+    StatusOk       = <span class="number">200</span>
+    StatusNotFound = <span class="number">404</span>
+    StatusError    = <span class="number">500</span>
+)</code></pre>
+            </div>
+            
+            <h3>Constantes com iota</h3>
+            <p>O <code>iota</code> é um identificador especial usado para criar sequências de constantes enumeradas:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">iota.go</span>
+                </div>
+                <pre><code><span class="comment">// iota começa em 0 e incrementa</span>
+<span class="keyword">const</span> (
+    Segunda = <span class="keyword">iota</span>  <span class="comment">// 0</span>
+    Terca           <span class="comment">// 1</span>
+    Quarta          <span class="comment">// 2</span>
+    Quinta          <span class="comment">// 3</span>
+    Sexta           <span class="comment">// 4</span>
+    Sabado          <span class="comment">// 5</span>
+    Domingo         <span class="comment">// 6</span>
+)
+
+<span class="comment">// Começando de 1</span>
+<span class="keyword">const</span> (
+    Janeiro = <span class="keyword">iota</span> + <span class="number">1</span>  <span class="comment">// 1</span>
+    Fevereiro            <span class="comment">// 2</span>
+    Marco                <span class="comment">// 3</span>
+    Abril                <span class="comment">// 4</span>
+)
+
+<span class="comment">// Potências de 2 (tamanhos de memória)</span>
+<span class="keyword">const</span> (
+    _  = <span class="keyword">iota</span>  <span class="comment">// ignora o primeiro valor usando _</span>
+    KB = <span class="number">1</span> << (<span class="number">10</span> * <span class="keyword">iota</span>)  <span class="comment">// 1 << 10 = 1024</span>
+    MB                        <span class="comment">// 1 << 20 = 1048576</span>
+    GB                        <span class="comment">// 1 << 30 = 1073741824</span>
+    TB                        <span class="comment">// 1 << 40 = 1099511627776</span>
+)
+
+<span class="comment">// Usando múltiplos valores por linha</span>
+<span class="keyword">const</span> (
+    a, b = <span class="keyword">iota</span>, <span class="keyword">iota</span> + <span class="number">10</span>  <span class="comment">// 0, 10</span>
+    c, d                       <span class="comment">// 1, 11</span>
+    e, f                       <span class="comment">// 2, 12</span>
+)</code></pre>
+            </div>
+            
+            <div class="highlight-box success">
+                <strong>✅ Boas Práticas:</strong>
+                <ul class="list">
+                    <li>Use constantes para valores que nunca mudam</li>
+                    <li>Nomeie constantes com PascalCase quando exportadas (públicas)</li>
+                    <li>Use iota para criar enumerações</li>
+                    <li>Agrupe constantes relacionadas em blocos</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="conversao" class="section">
+            <h2>Conversão de Tipos</h2>
+            
+            <p>Go não faz conversões automáticas de tipos. Você deve converter explicitamente:</p>
+            
+            <h3>Conversões Numéricas</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">conversao_numerica.go</span>
+                </div>
+                <pre><code><span class="keyword">var</span> x <span class="type">int</span> = <span class="number">42</span>
+<span class="keyword">var</span> y <span class="type">float64</span> = <span class="type">float64</span>(x)  <span class="comment">// int para float64</span>
+<span class="keyword">var</span> z <span class="type">int</span> = <span class="type">int</span>(y)        <span class="comment">// float64 para int (perde a parte decimal)</span>
+
+<span class="comment">// Conversões entre tipos inteiros</span>
+<span class="keyword">var</span> a <span class="type">int32</span> = <span class="number">100</span>
+<span class="keyword">var</span> b <span class="type">int64</span> = <span class="type">int64</span>(a)
+<span class="keyword">var</span> c <span class="type">uint</span> = <span class="type">uint</span>(a)
+
+<span class="comment">// Cuidado com overflow!</span>
+<span class="keyword">var</span> grande <span class="type">int32</span> = <span class="number">1000000</span>
+<span class="keyword">var</span> pequeno <span class="type">int8</span> = <span class="type">int8</span>(grande)  <span class="comment">// overflow - valor truncado!</span></code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>⚠️ Cuidado com Overflow:</strong> Ao converter de um tipo maior para menor, você pode perder dados se o valor exceder o limite do tipo destino.
+            </div>
+            
+            <h3>Conversões entre String e Números</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">string_conversao.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"strconv"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// String para Int</span>
+    str := <span class="string">"123"</span>
+    num, err := strconv.<span class="function">Atoi</span>(str)  <span class="comment">// retorna int e error</span>
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro na conversão:"</span>, err)
+    }
+    fmt.<span class="function">Println</span>(num)  <span class="comment">// 123</span>
+    
+    <span class="comment">// Int para String</span>
+    numero := <span class="number">456</span>
+    texto := strconv.<span class="function">Itoa</span>(numero)
+    fmt.<span class="function">Println</span>(texto)  <span class="comment">// "456"</span>
+    
+    <span class="comment">// String para Float</span>
+    strFloat := <span class="string">"3.14"</span>
+    f, err := strconv.<span class="function">ParseFloat</span>(strFloat, <span class="number">64</span>)  <span class="comment">// 64 bits</span>
+    fmt.<span class="function">Println</span>(f)  <span class="comment">// 3.14</span>
+    
+    <span class="comment">// Float para String</span>
+    pi := <span class="number">3.14159</span>
+    strPi := strconv.<span class="function">FormatFloat</span>(pi, <span class="string">'f'</span>, <span class="number">2</span>, <span class="number">64</span>)  <span class="comment">// 'f' formato, 2 casas decimais</span>
+    fmt.<span class="function">Println</span>(strPi)  <span class="comment">// "3.14"</span>
+    
+    <span class="comment">// String para Bool</span>
+    strBool := <span class="string">"true"</span>
+    b, err := strconv.<span class="function">ParseBool</span>(strBool)
+    fmt.<span class="function">Println</span>(b)  <span class="comment">// true</span>
+    
+    <span class="comment">// Bool para String</span>
+    ativo := <span class="keyword">true</span>
+    strAtivo := strconv.<span class="function">FormatBool</span>(ativo)
+    fmt.<span class="function">Println</span>(strAtivo)  <span class="comment">// "true"</span>
+}</code></pre>
+            </div>
+            
+            <h3>Conversões entre Rune, Byte e String</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">rune_byte.go</span>
+                </div>
+                <pre><code><span class="comment">// String para slice de bytes</span>
+str := <span class="string">"Olá"</span>
+bytes := []<span class="type">byte</span>(str)
+fmt.<span class="function">Println</span>(bytes)  <span class="comment">// [79 108 195 161]</span>
+
+<span class="comment">// Slice de bytes para string</span>
+novaStr := <span class="type">string</span>(bytes)
+fmt.<span class="function">Println</span>(novaStr)  <span class="comment">// "Olá"</span>
+
+<span class="comment">// String para slice de runes</span>
+runes := []<span class="type">rune</span>(str)
+fmt.<span class="function">Println</span>(runes)  <span class="comment">// [79 108 225] (caracteres Unicode)</span>
+
+<span class="comment">// Rune para string</span>
+r := <span class="string">'A'</span>
+s := <span class="type">string</span>(r)
+fmt.<span class="function">Println</span>(s)  <span class="comment">// "A"</span>
+
+<span class="comment">// Int para rune (código Unicode)</span>
+codigo := <span class="number">65</span>
+caractere := <span class="type">rune</span>(codigo)
+fmt.<span class="function">Println</span>(<span class="type">string</span>(caractere))  <span class="comment">// "A"</span></code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exemplo Prático Completo</h2>
+            
+            <p>Vamos criar um programa que demonstra o uso de variáveis, tipos e constantes:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">exemplo_completo.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"math"</span>
+)
+
+<span class="comment">// Constantes em nível de pacote</span>
+<span class="keyword">const</span> (
+    EmpresaNome = <span class="string">"TechCorp"</span>
+    Versao      = <span class="string">"1.0.0"</span>
+    Pi          = <span class="number">3.14159265359</span>
+)
+
+<span class="comment">// Enumeração com iota</span>
+<span class="keyword">const</span> (
+    Admin = <span class="keyword">iota</span>  <span class="comment">// 0</span>
+    Editor         <span class="comment">// 1</span>
+    Viewer         <span class="comment">// 2</span>
+)
+
+<span class="comment">// Variáveis em nível de pacote</span>
+<span class="keyword">var</span> (
+    totalUsuarios <span class="type">int</span>
+    sistemaAtivo  <span class="type">bool</span> = <span class="keyword">true</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Declarações de variáveis</span>
+    <span class="keyword">var</span> nome <span class="type">string</span> = <span class="string">"João Silva"</span>
+    idade := <span class="number">25</span>
+    altura := <span class="number">1.75</span>
+    
+    <span class="comment">// Calculando IMC</span>
+    peso := <span class="number">70.5</span>
+    imc := peso / math.<span class="function">Pow</span>(altura, <span class="number">2</span>)
+    
+    <span class="comment">// Formatando saída</span>
+    fmt.<span class="function">Printf</span>(<span class="string">"Sistema: %s v%s\n"</span>, EmpresaNome, Versao)
+    fmt.<span class="function">Printf</span>(<span class="string">"Nome: %s\n"</span>, nome)
+    fmt.<span class="function">Printf</span>(<span class="string">"Idade: %d anos\n"</span>, idade)
+    fmt.<span class="function">Printf</span>(<span class="string">"Altura: %.2f m\n"</span>, altura)
+    fmt.<span class="function">Printf</span>(<span class="string">"Peso: %.1f kg\n"</span>, peso)
+    fmt.<span class="function">Printf</span>(<span class="string">"IMC: %.2f\n"</span>, imc)
+    
+    <span class="comment">// Usando constantes</span>
+    raio := <span class="number">5.0</span>
+    area := Pi * raio * raio
+    fmt.<span class="function">Printf</span>(<span class="string">"Área do círculo: %.2f\n"</span>, area)
+    
+    <span class="comment">// Conversões de tipos</span>
+    idadeFloat := <span class="type">float64</span>(idade)
+    anosRestantes := <span class="number">100.0</span> - idadeFloat
+    fmt.<span class="function">Printf</span>(<span class="string">"Anos restantes até 100: %.0f\n"</span>, anosRestantes)
+    
+    <span class="comment">// Verificando permissão</span>
+    permissao := Admin
+    <span class="keyword">if</span> permissao == Admin {
+        fmt.<span class="function">Println</span>(<span class="string">"Usuário com permissão de administrador"</span>)
+    }
+    
+    <span class="comment">// Múltiplas variáveis</span>
+    x, y, z := <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>
+    fmt.<span class="function">Printf</span>(<span class="string">"Coordenadas: (%d, %d, %d)\n"</span>, x, y, z)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>📝 Saída esperada:</strong>
+                <pre style="margin-top: 10px; color: #34d399;"><code>Sistema: TechCorp v1.0.0
+Nome: João Silva
+Idade: 25 anos
+Altura: 1.75 m
+Peso: 70.5 kg
+IMC: 23.02
+Área do círculo: 78.54
+Anos restantes até 100: 75
+Usuário com permissão de administrador
+Coordenadas: (1, 2, 3)</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Resumo e Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas</h3>
+                <ul class="list">
+                    <li>Use <code>:=</code> para declarações curtas dentro de funções</li>
+                    <li>Use <code>var</code> para variáveis em nível de pacote</li>
+                    <li>Prefira tipos explícitos quando a clareza é importante</li>
+                    <li>Use <code>const</code> para valores que não mudam</li>
+                    <li>Aproveite o <code>iota</code> para criar enumerações</li>
+                    <li>Sempre verifique erros ao converter strings para números</li>
+                    <li>Cuidado com overflow em conversões numéricas</li>
+                    <li>Use <code>float64</code> como padrão para decimais</li>
+                    <li>Use <code>int</code> como padrão para inteiros (a menos que precise de tamanho específico)</li>
+                    <li>Nomes de variáveis devem ser descritivos e em camelCase</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">⚠️ Erros Comuns</h3>
+                <ul class="list">
+                    <li>Tentar usar <code>:=</code> fora de funções</li>
+                    <li>Declarar variável e não usar (Go não compila)</li>
+                    <li>Esquecer de converter tipos explicitamente</li>
+                    <li>Ignorar erros em conversões de string</li>
+                    <li>Usar tipos numéricos muito pequenos causando overflow</li>
+                    <li>Confundir <code>=</code> (atribuição) com <code>:=</code> (declaração)</li>
+                    <li>Tentar modificar constantes</li>
+                </ul>
+            </div>
+            
+            <h3>Checklist de Aprendizado</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Conceito</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Declaração com <code>var</code></td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Declaração curta com <code>:=</code></td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Inferência de tipos</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Valores zero</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Tipos numéricos</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Strings e operações</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Boolean e operadores lógicos</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Constantes e <code>iota</code></td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Conversões de tipos</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>Conversões string/números</td>
+                            <td><span class="badge success">✓</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exercícios Práticos</h2>
+            
+            <div class="highlight-box">
+                <h3 style="margin-bottom: 15px;">🎯 Desafios</h3>
+                
+                <p><strong>1. Calculadora de Conversão de Temperatura</strong></p>
+                <p style="margin-bottom: 15px;">Crie um programa que converta temperaturas entre Celsius, Fahrenheit e Kelvin. Use constantes para as fórmulas de conversão.</p>
+                
+                <p><strong>2. Sistema de Permissões</strong></p>
+                <p style="margin-bottom: 15px;">Crie um sistema de permissões usando <code>iota</code> para definir níveis (Guest, User, Moderator, Admin). Atribua uma permissão a um usuário e verifique se ele pode executar determinadas ações.</p>
+                
+                <p><strong>3. Calculadora de Tamanhos de Arquivo</strong></p>
+                <p style="margin-bottom: 15px;">Crie constantes para KB, MB, GB e TB usando <code>iota</code>. Faça um programa que converta bytes para a unidade mais apropriada.</p>
+                
+                <p><strong>4. Validador de Tipos</strong></p>
+                <p style="margin-bottom: 15px;">Crie um programa que receba uma string do usuário e tente convertê-la para int, float64 e bool, reportando quais conversões foram bem-sucedidas.</p>
+                
+                <p><strong>5. Calculadora de Idade</strong></p>
+                <p>Dado um ano de nascimento (int), calcule a idade atual, quantos dias a pessoa viveu (aproximadamente), e mostre se é maior de idade (use const para definir a maioridade).</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>📚 Continue praticando e explore a documentação oficial do Go em <strong>go.dev</strong></p>
+            <p>💡 Próximo tópico: Operadores e Estruturas de Controle</p>
+        </footer>
+    </div>
+</body>
+</html>

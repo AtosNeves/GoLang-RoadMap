@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channels em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Channels</h1>
+            <p class="subtitle">Comunicação entre Goroutines</p>
+            <div class="nav-links">
+                <a href="#conceito" class="nav-link">O que são</a>
+                <a href="#tipos" class="nav-link">Tipos</a>
+                <a href="#operacoes" class="nav-link">Operações</a>
+                <a href="#pratico" class="nav-link">Exemplos</a>
+            </div>
+        </header>
+        
+        <section id="conceito" class="section">
+            <h2>O que são Channels?</h2>
+            
+            <p>Channels são <strong>tubos tipados</strong> através dos quais você pode enviar e receber valores. Eles permitem comunicação segura entre goroutines.</p>
+            
+            <div class="highlight-box info">
+                <strong>Filosofia Go:</strong> "Não comunique compartilhando memória; compartilhe memória comunicando." Channels implementam essa filosofia.
+            </div>
+            
+            <h3>Criando Channels</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">channel_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Criando um channel de inteiros</span>
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    
+    <span class="comment">// Enviando valor em goroutine</span>
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        ch <- <span class="number">42</span>  <span class="comment">// Envia valor para o channel</span>
+    }()
+    
+    <span class="comment">// Recebendo valor</span>
+    valor := <-ch  <span class="comment">// Recebe valor do channel</span>
+    fmt.<span class="function">Println</span>(valor)
+    
+    <span class="comment">// Channels de diferentes tipos</span>
+    chString := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    chBool := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">bool</span>)
+    chStruct := <span class="function">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>{})
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="tipos" class="section">
+            <h2>Tipos de Channels</h2>
+            
+            <h3>1. Unbuffered Channels</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">unbuffered.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Channel sem buffer - bloqueante</span>
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="comment">// Envia e bloqueia até que alguém receba</span>
+        ch <- <span class="string">"Mensagem"</span>
+        fmt.<span class="function">Println</span>(<span class="string">"Enviado!"</span>)
+    }()
+    
+    <span class="comment">// Recebe e bloqueia até que alguém envie</span>
+    msg := <-ch
+    fmt.<span class="function">Println</span>(<span class="string">"Recebido:"</span>, msg)
+}</code></pre>
+            </div>
+            
+            <h3>2. Buffered Channels</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">buffered.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Channel com buffer de 2</span>
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">2</span>)
+    
+    <span class="comment">// Pode enviar até 2 valores sem bloquear</span>
+    ch <- <span class="number">1</span>
+    ch <- <span class="number">2</span>
+    
+    fmt.<span class="function">Println</span>(<-ch)  <span class="comment">// 1</span>
+    fmt.<span class="function">Println</span>(<-ch)  <span class="comment">// 2</span>
+    
+    <span class="comment">// Informações do buffer</span>
+    ch <- <span class="number">10</span>
+    fmt.<span class="function">Printf</span>(<span class="string">"Capacidade: %d, Tamanho: %d\n"</span>, <span class="function">cap</span>(ch), <span class="function">len</span>(ch))
+}</code></pre>
+            </div>
+            
+            <h3>3. Directional Channels</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">directional.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Apenas envia</span>
+<span class="keyword">func</span> <span class="function">enviar</span>(ch <span class="keyword">chan</span><- <span class="type">int</span>) {
+    ch <- <span class="number">100</span>
+}
+
+<span class="comment">// Apenas recebe</span>
+<span class="keyword">func</span> <span class="function">receber</span>(ch <-<span class="keyword">chan</span> <span class="type">int</span>) {
+    valor := <-ch
+    fmt.<span class="function">Println</span>(valor)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    
+    <span class="keyword">go</span> <span class="function">enviar</span>(ch)
+    <span class="function">receber</span>(ch)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="operacoes" class="section">
+            <h2>Operações com Channels</h2>
+            
+            <h3>Fechando Channels</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">close_channel.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">3</span>)
+    
+    <span class="comment">// Envia valores</span>
+    ch <- <span class="number">1</span>
+    ch <- <span class="number">2</span>
+    ch <- <span class="number">3</span>
+    <span class="function">close</span>(ch)  <span class="comment">// Fecha o channel</span>
+    
+    <span class="comment">// Range sobre channel fechado</span>
+    <span class="keyword">for</span> valor := <span class="keyword">range</span> ch {
+        fmt.<span class="function">Println</span>(valor)
+    }
+    
+    <span class="comment">// Verificar se channel está fechado</span>
+    valor, ok := <-ch
+    <span class="keyword">if</span> !ok {
+        fmt.<span class="function">Println</span>(<span class="string">"Channel fechado"</span>)
+    }
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Importante:</strong> Apenas o remetente deve fechar um channel. Enviar para um channel fechado causa panic!
+            </div>
+            
+            <h3>Range sobre Channels</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">range_channel.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">produtor</span>(ch <span class="keyword">chan</span><- <span class="type">int</span>) {
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">5</span>; i++ {
+        ch <- i
+    }
+    <span class="function">close</span>(ch)  <span class="comment">// Importante!</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    
+    <span class="keyword">go</span> <span class="function">produtor</span>(ch)
+    
+    <span class="comment">// Range continua até o channel ser fechado</span>
+    <span class="keyword">for</span> valor := <span class="keyword">range</span> ch {
+        fmt.<span class="function">Println</span>(valor)
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Pipeline de Dados</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">pipeline.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">gerador</span>(nums ...<span class="type">int</span>) <-<span class="keyword">chan</span> <span class="type">int</span> {
+    out := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="keyword">for</span> _, n := <span class="keyword">range</span> nums {
+            out <- n
+        }
+        <span class="function">close</span>(out)
+    }()
+    <span class="keyword">return</span> out
+}
+
+<span class="keyword">func</span> <span class="function">quadrado</span>(in <-<span class="keyword">chan</span> <span class="type">int</span>) <-<span class="keyword">chan</span> <span class="type">int</span> {
+    out := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="keyword">for</span> n := <span class="keyword">range</span> in {
+            out <- n * n
+        }
+        <span class="function">close</span>(out)
+    }()
+    <span class="keyword">return</span> out
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Pipeline: gerador -> quadrado</span>
+    ch := <span class="function">gerador</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)
+    resultado := <span class="function">quadrado</span>(ch)
+    
+    <span class="keyword">for</span> n := <span class="keyword">range</span> resultado {
+        fmt.<span class="function">Println</span>(n)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>2. Fan-Out / Fan-In</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">fan_out_in.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(id <span class="type">int</span>, jobs <-<span class="keyword">chan</span> <span class="type">int</span>, results <span class="keyword">chan</span><- <span class="type">int</span>) {
+    <span class="keyword">for</span> j := <span class="keyword">range</span> jobs {
+        fmt.<span class="function">Printf</span>(<span class="string">"Worker %d processando %d\n"</span>, id, j)
+        time.<span class="function">Sleep</span>(<span class="number">100</span> * time.Millisecond)
+        results <- j * <span class="number">2</span>
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    jobs := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">10</span>)
+    results := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">10</span>)
+    
+    <span class="comment">// Fan-out: múltiplos workers</span>
+    <span class="keyword">for</span> w := <span class="number">1</span>; w <= <span class="number">3</span>; w++ {
+        <span class="keyword">go</span> <span class="function">worker</span>(w, jobs, results)
+    }
+    
+    <span class="comment">// Envia jobs</span>
+    <span class="keyword">for</span> j := <span class="number">1</span>; j <= <span class="number">5</span>; j++ {
+        jobs <- j
+    }
+    <span class="function">close</span>(jobs)
+    
+    <span class="comment">// Fan-in: coleta resultados</span>
+    <span class="keyword">for</span> a := <span class="number">1</span>; a <= <span class="number">5</span>; a++ {
+        fmt.<span class="function">Println</span>(<-results)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>3. Timeout Pattern</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">timeout.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">operacaoDemorada</span>(ch <span class="keyword">chan</span><- <span class="type">string</span>) {
+    time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+    ch <- <span class="string">"Resultado"</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    
+    <span class="keyword">go</span> <span class="function">operacaoDemorada</span>(ch)
+    
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> resultado := <-ch:
+        fmt.<span class="function">Println</span>(resultado)
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">1</span> * time.Second):
+        fmt.<span class="function">Println</span>(<span class="string">"Timeout!"</span>)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>4. Quit Channel</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">quit_channel.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(id <span class="type">int</span>, quit <-<span class="keyword">chan</span> <span class="keyword">bool</span>) {
+    <span class="keyword">for</span> {
+        <span class="keyword">select</span> {
+        <span class="keyword">case</span> <-quit:
+            fmt.<span class="function">Printf</span>(<span class="string">"Worker %d parando\n"</span>, id)
+            <span class="keyword">return</span>
+        <span class="keyword">default</span>:
+            fmt.<span class="function">Printf</span>(<span class="string">"Worker %d trabalhando\n"</span>, id)
+            time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+        }
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    quit := <span class="function">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>)
+    
+    <span class="keyword">go</span> <span class="function">worker</span>(<span class="number">1</span>, quit)
+    
+    time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+    quit <- <span class="keyword">true</span>
+    
+    time.<span class="function">Sleep</span>(<span class="number">1</span> * time.Second)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Faça</h3>
+                <ul class="list">
+                    <li>Sempre feche channels quando não forem mais necessários</li>
+                    <li>Feche channels apenas no lado do remetente</li>
+                    <li>Use channels direcionais para clareza</li>
+                    <li>Use buffered channels para desacoplar produtor/consumidor</li>
+                    <li>Use range para iterar sobre channels</li>
+                    <li>Considere timeouts para operações que podem travar</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">Evite</h3>
+                <ul class="list">
+                    <li>Enviar para channel fechado (causa panic)</li>
+                    <li>Fechar channel múltiplas vezes (causa panic)</li>
+                    <li>Fechar channel no lado receptor</li>
+                    <li>Usar channels quando mutex seria mais simples</li>
+                    <li>Criar goroutine leaks (goroutines bloqueadas eternamente)</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Channels tornam a comunicação entre goroutines segura e elegante</p>
+            <p>Próximo tópico: Select Statement</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaces e Polimorfismo em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interfaces e Polimorfismo</h1>
+            <p class="subtitle">A Essência da Abstração em Go</p>
+            <div class="nav-links">
+                <a href="#conceito" class="nav-link">O que são</a>
+                <a href="#implementacao" class="nav-link">Implementação</a>
+                <a href="#polimorfismo" class="nav-link">Polimorfismo</a>
+                <a href="#pratico" class="nav-link">Exemplos</a>
+            </div>
+        </header>
+        
+        <section id="conceito" class="section">
+            <h2>O que são Interfaces?</h2>
+            
+            <p>Uma interface em Go é um <strong>conjunto de assinaturas de métodos</strong>. Ela define um contrato de comportamento sem especificar como esse comportamento deve ser implementado.</p>
+            
+            <div class="highlight-box info">
+                <strong>Conceito Chave:</strong> Em Go, interfaces são implementadas implicitamente. Se um tipo possui todos os métodos que uma interface define, ele automaticamente implementa essa interface - sem declaração explícita!
+            </div>
+            
+            <h3>Declaração Básica</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">interface_basica.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Declarando uma interface</span>
+<span class="keyword">type</span> Forma <span class="keyword">interface</span> {
+    <span class="function">Area</span>() <span class="type">float64</span>
+    <span class="function">Perimetro</span>() <span class="type">float64</span>
+}
+
+<span class="comment">// Retângulo implementa Forma</span>
+<span class="keyword">type</span> Retangulo <span class="keyword">struct</span> {
+    Largura, Altura <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> (r Retangulo) <span class="function">Area</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> r.Largura * r.Altura
+}
+
+<span class="keyword">func</span> (r Retangulo) <span class="function">Perimetro</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> <span class="number">2</span> * (r.Largura + r.Altura)
+}
+
+<span class="comment">// Círculo implementa Forma</span>
+<span class="keyword">type</span> Circulo <span class="keyword">struct</span> {
+    Raio <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> (c Circulo) <span class="function">Area</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> <span class="number">3.14159</span> * c.Raio * c.Raio
+}
+
+<span class="keyword">func</span> (c Circulo) <span class="function">Perimetro</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> <span class="number">2</span> * <span class="number">3.14159</span> * c.Raio
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">var</span> f Forma
+    
+    f = Retangulo{Largura: <span class="number">10</span>, Altura: <span class="number">5</span>}
+    fmt.<span class="function">Printf</span>(<span class="string">"Retângulo - Área: %.2f, Perímetro: %.2f\n"</span>, f.<span class="function">Area</span>(), f.<span class="function">Perimetro</span>())
+    
+    f = Circulo{Raio: <span class="number">7</span>}
+    fmt.<span class="function">Printf</span>(<span class="string">"Círculo - Área: %.2f, Perímetro: %.2f\n"</span>, f.<span class="function">Area</span>(), f.<span class="function">Perimetro</span>())
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="implementacao" class="section">
+            <h2>Implementação Implícita</h2>
+            
+            <p>Go não requer palavra-chave como "implements". Se um tipo possui os métodos, ele implementa a interface automaticamente.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">implementacao_implicita.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Escritor <span class="keyword">interface</span> {
+    <span class="function">Escrever</span>(texto <span class="type">string</span>) <span class="type">error</span>
+}
+
+<span class="keyword">type</span> ArquivoLog <span class="keyword">struct</span> {
+    Nome <span class="type">string</span>
+}
+
+<span class="comment">// ArquivoLog implementa Escritor automaticamente</span>
+<span class="keyword">func</span> (a ArquivoLog) <span class="function">Escrever</span>(texto <span class="type">string</span>) <span class="type">error</span> {
+    fmt.<span class="function">Printf</span>(<span class="string">"[%s] %s\n"</span>, a.Nome, texto)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">type</span> Console <span class="keyword">struct</span>{}
+
+<span class="comment">// Console também implementa Escritor</span>
+<span class="keyword">func</span> (c Console) <span class="function">Escrever</span>(texto <span class="type">string</span>) <span class="type">error</span> {
+    fmt.<span class="function">Println</span>(<span class="string">"CONSOLE:"</span>, texto)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">registrar</span>(w Escritor, mensagem <span class="type">string</span>) {
+    w.<span class="function">Escrever</span>(mensagem)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    arquivo := ArquivoLog{Nome: <span class="string">"app.log"</span>}
+    console := Console{}
+    
+    <span class="function">registrar</span>(arquivo, <span class="string">"Iniciando aplicação"</span>)
+    <span class="function">registrar</span>(console, <span class="string">"Processando dados"</span>)
+}</code></pre>
+            </div>
+            
+            <h3>Interface Vazia</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">interface_vazia.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// interface{} aceita qualquer tipo</span>
+<span class="keyword">func</span> <span class="function">imprimir</span>(valor <span class="keyword">interface</span>{}) {
+    fmt.<span class="function">Println</span>(valor)
+}
+
+<span class="keyword">func</span> <span class="function">descrever</span>(i <span class="keyword">interface</span>{}) {
+    fmt.<span class="function">Printf</span>(<span class="string">"Tipo: %T, Valor: %v\n"</span>, i, i)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="function">imprimir</span>(<span class="number">42</span>)
+    <span class="function">imprimir</span>(<span class="string">"Hello"</span>)
+    <span class="function">imprimir</span>(<span class="keyword">true</span>)
+    <span class="function">imprimir</span>([]<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>})
+    
+    <span class="function">descrever</span>(<span class="number">3.14</span>)
+    <span class="function">descrever</span>(<span class="string">"Go"</span>)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Nota:</strong> Go 1.18+ introduziu <code>any</code> como alias para <code>interface{}</code>, tornando o código mais legível.
+            </div>
+        </section>
+        
+        <section id="polimorfismo" class="section">
+            <h2>Polimorfismo</h2>
+            
+            <p>Polimorfismo permite que diferentes tipos sejam tratados através de uma interface comum.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">polimorfismo.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Animal <span class="keyword">interface</span> {
+    <span class="function">EmitirSom</span>() <span class="type">string</span>
+    <span class="function">Mover</span>() <span class="type">string</span>
+}
+
+<span class="keyword">type</span> Cachorro <span class="keyword">struct</span> {
+    Nome <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (c Cachorro) <span class="function">EmitirSom</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"Au au!"</span>
+}
+
+<span class="keyword">func</span> (c Cachorro) <span class="function">Mover</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"Correndo"</span>
+}
+
+<span class="keyword">type</span> Passaro <span class="keyword">struct</span> {
+    Nome <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (p Passaro) <span class="function">EmitirSom</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"Piu piu!"</span>
+}
+
+<span class="keyword">func</span> (p Passaro) <span class="function">Mover</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"Voando"</span>
+}
+
+<span class="keyword">func</span> <span class="function">fazerBarulho</span>(a Animal) {
+    fmt.<span class="function">Printf</span>(<span class="string">"%s está %s\n"</span>, a.<span class="function">EmitirSom</span>(), a.<span class="function">Mover</span>())
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    animais := []Animal{
+        Cachorro{Nome: <span class="string">"Rex"</span>},
+        Passaro{Nome: <span class="string">"Piu"</span>},
+    }
+    
+    <span class="keyword">for</span> _, animal := <span class="keyword">range</span> animais {
+        <span class="function">fazerBarulho</span>(animal)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Type Assertion e Type Switch</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">type_assertion.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">processar</span>(i <span class="keyword">interface</span>{}) {
+    <span class="comment">// Type assertion com verificação</span>
+    <span class="keyword">if</span> valor, ok := i.(<span class="type">string</span>); ok {
+        fmt.<span class="function">Println</span>(<span class="string">"String:"</span>, valor)
+        <span class="keyword">return</span>
+    }
+    
+    <span class="comment">// Type switch</span>
+    <span class="keyword">switch</span> v := i.(<span class="keyword">type</span>) {
+    <span class="keyword">case</span> <span class="type">int</span>:
+        fmt.<span class="function">Printf</span>(<span class="string">"Inteiro: %d\n"</span>, v)
+    <span class="keyword">case</span> <span class="type">float64</span>:
+        fmt.<span class="function">Printf</span>(<span class="string">"Float: %.2f\n"</span>, v)
+    <span class="keyword">case</span> <span class="type">bool</span>:
+        fmt.<span class="function">Printf</span>(<span class="string">"Booleano: %t\n"</span>, v)
+    <span class="keyword">case</span> []<span class="type">int</span>:
+        fmt.<span class="function">Println</span>(<span class="string">"Slice de ints:"</span>, v)
+    <span class="keyword">default</span>:
+        fmt.<span class="function">Printf</span>(<span class="string">"Tipo desconhecido: %T\n"</span>, v)
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="function">processar</span>(<span class="number">42</span>)
+    <span class="function">processar</span>(<span class="number">3.14</span>)
+    <span class="function">processar</span>(<span class="string">"Hello"</span>)
+    <span class="function">processar</span>(<span class="keyword">true</span>)
+    <span class="function">processar</span>([]<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>})
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Sistema de Pagamento</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">pagamento.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> MetodoPagamento <span class="keyword">interface</span> {
+    <span class="function">Pagar</span>(valor <span class="type">float64</span>) <span class="type">error</span>
+    <span class="function">ObterNome</span>() <span class="type">string</span>
+}
+
+<span class="keyword">type</span> CartaoCredito <span class="keyword">struct</span> {
+    Numero <span class="type">string</span>
+    Titular <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (c CartaoCredito) <span class="function">Pagar</span>(valor <span class="type">float64</span>) <span class="type">error</span> {
+    fmt.<span class="function">Printf</span>(<span class="string">"Pagando R$ %.2f com Cartão de Crédito\n"</span>, valor)
+    fmt.<span class="function">Printf</span>(<span class="string">"Titular: %s\n"</span>, c.Titular)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> (c CartaoCredito) <span class="function">ObterNome</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"Cartão de Crédito"</span>
+}
+
+<span class="keyword">type</span> PIX <span class="keyword">struct</span> {
+    Chave <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (p PIX) <span class="function">Pagar</span>(valor <span class="type">float64</span>) <span class="type">error</span> {
+    fmt.<span class="function">Printf</span>(<span class="string">"Pagando R$ %.2f via PIX\n"</span>, valor)
+    fmt.<span class="function">Printf</span>(<span class="string">"Chave: %s\n"</span>, p.Chave)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> (p PIX) <span class="function">ObterNome</span>() <span class="type">string</span> {
+    <span class="keyword">return</span

@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funções, Múltiplos Retornos e Funções Variádicas em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword {
+            color: #f472b6;
+        }
+        
+        .function {
+            color: #a78bfa;
+        }
+        
+        .string {
+            color: #34d399;
+        }
+        
+        .comment {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .number {
+            color: #60a5fa;
+        }
+        
+        .type {
+            color: #fbbf24;
+        }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+        
+        .highlight-box.info {
+            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        
+        .highlight-box.success {
+            border-left-color: #34d399;
+            background: rgba(52, 211, 153, 0.05);
+        }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #b0b0b0;
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 25px;
+            }
+            
+            h2 {
+                font-size: 1.6rem;
+            }
+            
+            .code-block {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Funções em Go</h1>
+            <p class="subtitle">Múltiplos Retornos e Funções Variádicas</p>
+            <div class="nav-links">
+                <a href="#basico" class="nav-link">Funções Básicas</a>
+                <a href="#multiplos" class="nav-link">Múltiplos Retornos</a>
+                <a href="#variadicas" class="nav-link">Funções Variádicas</a>
+                <a href="#avancado" class="nav-link">Tópicos Avançados</a>
+            </div>
+        </header>
+        
+        <section id="basico" class="section">
+            <h2>Declaração de Funções</h2>
+            
+            <p>Funções são blocos de código reutilizáveis. Em Go, elas são declaradas com a palavra-chave <code>func</code>.</p>
+            
+            <h3>Sintaxe Básica</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">funcoes_basicas.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Função sem parâmetros e sem retorno</span>
+<span class="keyword">func</span> <span class="function">saudar</span>() {
+    fmt.<span class="function">Println</span>(<span class="string">"Olá, mundo!"</span>)
+}
+
+<span class="comment">// Função com parâmetros</span>
+<span class="keyword">func</span> <span class="function">saudarPessoa</span>(nome <span class="type">string</span>) {
+    fmt.<span class="function">Println</span>(<span class="string">"Olá,"</span>, nome)
+}
+
+<span class="comment">// Função com retorno</span>
+<span class="keyword">func</span> <span class="function">somar</span>(a <span class="type">int</span>, b <span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">return</span> a + b
+}
+
+<span class="comment">// Parâmetros do mesmo tipo (forma curta)</span>
+<span class="keyword">func</span> <span class="function">multiplicar</span>(a, b <span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">return</span> a * b
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="function">saudar</span>()
+    <span class="function">saudarPessoa</span>(<span class="string">"João"</span>)
+    
+    resultado := <span class="function">somar</span>(<span class="number">5</span>, <span class="number">3</span>)
+    fmt.<span class="function">Println</span>(<span class="string">"Soma:"</span>, resultado)
+    
+    fmt.<span class="function">Println</span>(<span class="string">"Multiplicação:"</span>, <span class="function">multiplicar</span>(<span class="number">4</span>, <span class="number">7</span>))
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>💡 Dica:</strong> Quando múltiplos parâmetros consecutivos têm o mesmo tipo, você pode omitir o tipo até o último: <code>func somar(a, b, c int)</code>
+            </div>
+        </section>
+        
+        <section id="multiplos" class="section">
+            <h2>Múltiplos Retornos</h2>
+            
+            <p>Uma das características mais poderosas do Go é a capacidade de retornar múltiplos valores de uma função.</p>
+            
+            <h3>Retornando Múltiplos Valores</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">multiplos_retornos.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Retorna dois valores</span>
+<span class="keyword">func</span> <span class="function">dividir</span>(a, b <span class="type">float64</span>) (<span class="type">float64</span>, <span class="type">float64</span>) {
+    quociente := a / b
+    resto := <span class="type">int</span>(a) % <span class="type">int</span>(b)
+    <span class="keyword">return</span> quociente, <span class="type">float64</span>(resto)
+}
+
+<span class="comment">// Retorna valor e erro (padrão Go)</span>
+<span class="keyword">func</span> <span class="function">dividirSeguro</span>(a, b <span class="type">float64</span>) (<span class="type">float64</span>, <span class="type">error</span>) {
+    <span class="keyword">if</span> b == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">0</span>, fmt.<span class="function">Errorf</span>(<span class="string">"divisão por zero"</span>)
+    }
+    <span class="keyword">return</span> a / b, <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Capturando múltiplos retornos</span>
+    quociente, resto := <span class="function">dividir</span>(<span class="number">10</span>, <span class="number">3</span>)
+    fmt.<span class="function">Printf</span>(<span class="string">"Quociente: %.2f, Resto: %.0f\n"</span>, quociente, resto)
+    
+    <span class="comment">// Ignorando um valor com _</span>
+    resultado, _ := <span class="function">dividir</span>(<span class="number">20</span>, <span class="number">4</span>)
+    fmt.<span class="function">Println</span>(<span class="string">"Resultado:"</span>, resultado)
+    
+    <span class="comment">// Tratando erro</span>
+    valor, err := <span class="function">dividirSeguro</span>(<span class="number">10</span>, <span class="number">0</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro:"</span>, err)
+    } <span class="keyword">else</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Valor:"</span>, valor)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Retornos Nomeados</h3>
+            
+            <p>Go permite nomear os valores de retorno, o que cria variáveis automaticamente e permite retorno vazio.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">retornos_nomeados.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Retornos nomeados</span>
+<span class="keyword">func</span> <span class="function">calculaRetangulo</span>(largura, altura <span class="type">float64</span>) (area, perimetro <span class="type">float64</span>) {
+    area = largura * altura
+    perimetro = <span class="number">2</span> * (largura + altura)
+    <span class="keyword">return</span>  <span class="comment">// retorno vazio (naked return)</span>
+}
+
+<span class="comment">// Exemplo mais prático</span>
+<span class="keyword">func</span> <span class="function">obterNomeCompleto</span>(primeiro, ultimo <span class="type">string</span>) (completo <span class="type">string</span>, tamanho <span class="type">int</span>) {
+    completo = primeiro + <span class="string">" "</span> + ultimo
+    tamanho = <span class="function">len</span>(completo)
+    <span class="keyword">return</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    a, p := <span class="function">calculaRetangulo</span>(<span class="number">5.0</span>, <span class="number">3.0</span>)
+    fmt.<span class="function">Printf</span>(<span class="string">"Área: %.2f, Perímetro: %.2f\n"</span>, a, p)
+    
+    nome, tam := <span class="function">obterNomeCompleto</span>(<span class="string">"João"</span>, <span class="string">"Silva"</span>)
+    fmt.<span class="function">Printf</span>(<span class="string">"Nome: %s, Tamanho: %d\n"</span>, nome, tam)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>⚠️ Atenção:</strong> Retornos vazios (naked returns) só devem ser usados em funções curtas. Em funções longas, eles tornam o código menos legível.
+            </div>
+        </section>
+        
+        <section id="variadicas" class="section">
+            <h2>Funções Variádicas</h2>
+            
+            <p>Funções variádicas podem aceitar um número variável de argumentos. Use <code>...</code> antes do tipo do último parâmetro.</p>
+            
+            <h3>Sintaxe Básica</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">variadicas.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Função variádica simples</span>
+<span class="keyword">func</span> <span class="function">somar</span>(numeros ...<span class="type">int</span>) <span class="type">int</span> {
+    total := <span class="number">0</span>
+    <span class="keyword">for</span> _, num := <span class="keyword">range</span> numeros {
+        total += num
+    }
+    <span class="keyword">return</span> total
+}
+
+<span class="comment">// Com parâmetros fixos e variádicos</span>
+<span class="keyword">func</span> <span class="function">saudarVarios</span>(saudacao <span class="type">string</span>, nomes ...<span class="type">string</span>) {
+    <span class="keyword">for</span> _, nome := <span class="keyword">range</span> nomes {
+        fmt.<span class="function">Printf</span>(<span class="string">"%s, %s!\n"</span>, saudacao, nome)
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Chamando com quantidade variável de argumentos</span>
+    fmt.<span class="function">Println</span>(<span class="function">somar</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>))              <span class="comment">// 6</span>
+    fmt.<span class="function">Println</span>(<span class="function">somar</span>(<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>))  <span class="comment">// 150</span>
+    fmt.<span class="function">Println</span>(<span class="function">somar</span>())                    <span class="comment">// 0</span>
+    
+    <span class="comment">// Expandindo slice com ...</span>
+    valores := []<span class="type">int</span>{<span class="number">5</span>, <span class="number">10</span>, <span class="number">15</span>}
+    fmt.<span class="function">Println</span>(<span class="function">somar</span>(valores...))        <span class="comment">// 30</span>
+    
+    <span class="function">saudarVarios</span>(<span class="string">"Olá"</span>, <span class="string">"João"</span>, <span class="string">"Maria"</span>, <span class="string">"Pedro"</span>)
+}</code></pre>
+            </div>
+            
+            <h3>Exemplos Práticos</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">variadicas_praticas.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"strings"</span>
+)
+
+<span class="comment">// Calcula média de notas</span>
+<span class="keyword">func</span> <span class="function">calcularMedia</span>(notas ...<span class="type">float64</span>) <span class="type">float64</span> {
+    <span class="keyword">if</span> <span class="function">len</span>(notas) == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">0</span>
+    }
+    
+    soma := <span class="number">0.0</span>
+    <span class="keyword">for</span> _, nota := <span class="keyword">range</span> notas {
+        soma += nota
+    }
+    
+    <span class="keyword">return</span> soma / <span class="type">float64</span>(<span class="function">len</span>(notas))
+}
+
+<span class="comment">// Encontra o maior valor</span>
+<span class="keyword">func</span> <span class="function">maximo</span>(nums ...<span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">if</span> <span class="function">len</span>(nums) == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">0</span>
+    }
+    
+    max := nums[<span class="number">0</span>]
+    <span class="keyword">for</span> _, num := <span class="keyword">range</span> nums {
+        <span class="keyword">if</span> num > max {
+            max = num
+        }
+    }
+    <span class="keyword">return</span> max
+}
+
+<span class="comment">// Concatena strings com separador</span>
+<span class="keyword">func</span> <span class="function">concatenar</span>(separador <span class="type">string</span>, textos ...<span class="type">string</span>) <span class="type">string</span> {
+    <span class="keyword">return</span> strings.<span class="function">Join</span>(textos, separador)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    media := <span class="function">calcularMedia</span>(<span class="number">7.5</span>, <span class="number">8.0</span>, <span class="number">9.5</span>, <span class="number">6.0</span>)
+    fmt.<span class="function">Printf</span>(<span class="string">"Média: %.2f\n"</span>, media)
+    
+    maior := <span class="function">maximo</span>(<span class="number">45</span>, <span class="number">12</span>, <span class="number">89</span>, <span class="number">23</span>, <span class="number">67</span>)
+    fmt.<span class="function">Println</span>(<span class="string">"Maior valor:"</span>, maior)
+    
+    frase := <span class="function">concatenar</span>(<span class="string">" - "</span>, <span class="string">"Go"</span>, <span class="string">"Python"</span>, <span class="string">"JavaScript"</span>)
+    fmt.<span class="function">Println</span>(frase)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="avancado" class="section">
+            <h2>Tópicos Avançados</h2>
+            
+            <h3>Funções como Valores</h3>
+            
+            <p>Em Go, funções são valores de primeira classe. Você pode atribuí-las a variáveis, passá-las como argumentos e retorná-las de outras funções.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">funcoes_como_valores.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Atribuindo função a uma variável</span>
+    somar := <span class="keyword">func</span>(a, b <span class="type">int</span>) <span class="type">int</span> {
+        <span class="keyword">return</span> a + b
+    }
+    
+    resultado := <span class="function">somar</span>(<span class="number">5</span>, <span class="number">3</span>)
+    fmt.<span class="function">Println</span>(<span class="string">"Resultado:"</span>, resultado)
+    
+    <span class="comment">// Função que recebe função como parâmetro</span>
+    <span class="function">executarOperacao</span>(<span class="number">10</span>, <span class="number">5</span>, somar)
+    
+    multiplicar := <span class="keyword">func</span>(a, b <span class="type">int</span>) <span class="type">int</span> {
+        <span class="keyword">return</span> a * b
+    }
+    <span class="function">executarOperacao</span>(<span class="number">10</span>, <span class="number">5</span>, multiplicar)
+}
+
+<span class="keyword">func</span> <span class="function">executarOperacao</span>(a, b <span class="type">int</span>, op <span class="keyword">func</span>(<span class="type">int</span>, <span class="type">int</span>) <span class="type">int</span>) {
+    resultado := <span class="function">op</span>(a, b)
+    fmt.<span class="function">Println</span>(<span class="string">"Resultado da operação:"</span>, resultado)
+}</code></pre>
+            </div>
+            
+            <h3>Closures</h3>
+            
+            <p>Closures são funções anônimas que podem acessar variáveis do escopo externo.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">closures.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Função que retorna uma closure</span>
+<span class="keyword">func</span> <span class="function">contador</span>() <span class="keyword">func</span>() <span class="type">int</span> {
+    count := <span class="number">0</span>
+    <span class="keyword">return</span> <span class="keyword">func</span>() <span class="type">int</span> {
+        count++
+        <span class="keyword">return</span> count
+    }
+}
+
+<span class="comment">// Gerador de multiplicadores</span>
+<span class="keyword">func</span> <span class="function">multiplicador</span>(fator <span class="type">int</span>) <span class="keyword">func</span>(<span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">return</span> <span class="keyword">func</span>(n <span class="type">int</span>) <span class="type">int</span> {
+        <span class="keyword">return</span> n * fator
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Cada chamada mantém seu próprio estado</span>
+    incrementa1 := <span class="function">contador</span>()
+    incrementa2 := <span class="function">contador</span>()
+    
+    fmt.<span class="function">Println</span>(<span class="function">incrementa1</span>())  <span class="comment">// 1</span>
+    fmt.<span class="function">Println</span>(<span class="function">incrementa1</span>())  <span class="comment">// 2</span>
+    fmt.<span class="function">Println</span>(<span class="function">incrementa2</span>())  <span class="comment">// 1</span>
+    fmt.<span class="function">Println</span>(<span class="function">incrementa1</span>())  <span class="comment">// 3</span>
+    
+    <span class="comment">// Multiplicadores diferentes</span>
+    dobro := <span class="function">multiplicador</span>(<span class="number">2</span>)
+    triplo := <span class="function">multiplicador</span>(<span class="number">3</span>)
+    
+    fmt.<span class="function">Println</span>(<span class="function">dobro</span>(<span class="number">5</span>))   <span class="comment">// 10</span>
+    fmt.<span class="function">Println</span>(<span class="function">triplo</span>(<span class="number">5</span>))  <span class="comment">// 15</span>
+}</code></pre>
+            </div>
+            
+            <h3>Defer</h3>
+            
+            <p>A palavra-chave <code>defer</code> adia a execução de uma função até que a função circundante retorne.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">defer.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">exemplo</span>() {
+    <span class="keyword">defer</span> fmt.<span class="function">Println</span>(<span class="string">"1 - Este será executado por último"</span>)
+    <span class="keyword">defer</span> fmt.<span class="function">Println</span>(<span class="string">"2 - Este será executado antes do 1"</span>)
+    
+    fmt.<span class="function">Println</span>(<span class="string">"Executando função normalmente"</span>)
+}
+
+<span class="comment">// Uso prático: fechando arquivo</span>
+<span class="keyword">func</span> <span class="function">lerArquivo</span>(nome <span class="type">string</span>) <span class="type">error</span> {
+    <span class="comment">// Simulação</span>
+    fmt.<span class="function">Println</span>(<span class="string">"Abrindo arquivo"</span>, nome)
+    <span class="keyword">defer</span> fmt.<span class="function">Println</span>(<span class="string">"Fechando arquivo"</span>, nome)
+    
+    fmt.<span class="function">Println</span>(<span class="string">"Processando arquivo..."</span>)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="function">exemplo</span>()
+    fmt.<span class="function">Println</span>()
+    <span class="function">lerArquivo</span>(<span class="string">"dados.txt"</span>)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>💡 Ordem de Execução:</strong> Múltiplos defers são executados em ordem LIFO (Last In, First Out) - último a entrar, primeiro a sair, como uma pilha.
+            </div>
+            
+            <h3>Recursão</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">recursao.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Fatorial usando recursão</span>
+<span class="keyword">func</span> <span class="function">fatorial</span>(n <span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">if</span> n == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">1</span>
+    }
+    <span class="keyword">return</span> n * <span class="function">fatorial</span>(n-<span class="number">1</span>)
+}
+
+<span class="comment">// Fibonacci usando recursão</span>
+<span class="keyword">func</span> <span class="function">fibonacci</span>(n <span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">if</span> n <= <span class="number">1</span> {
+        <span class="keyword">return</span> n
+    }
+    <span class="keyword">return</span> <span class="function">fibonacci</span>(n-<span class="number">1</span>) + <span class="function">fibonacci</span>(n-<span class="number">2</span>)
+}
+
+<span class="comment">// Soma de array com recursão</span>
+<span class="keyword">func</span> <span class="function">somaArray</span>(arr []<span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">if</span> <span class="function">len</span>(arr) == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">0</span>
+    }
+    <span class="keyword">return</span> arr[<span class="number">0</span>] + <span class="function">somaArray</span>(arr[<span class="number">1</span>:])
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"Fatorial de 5: %d\n"</span>, <span class="function">fatorial</span>(<span class="number">5</span>))
+    fmt.<span class="function">Printf</span>(<span class="string">"Fibonacci(10): %d\n"</span>, <span class="function">fibonacci</span>(<span class="number">10</span>))
+    
+    numeros := []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>}
+    fmt.<span class="function">Printf</span>(<span class="string">"Soma: %d\n"</span>, <span class="function">somaArray</span>(numeros))
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exemplos Práticos Completos</h2>
+            
+            <h3>Sistema de Validação</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">validacao.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"strings"</span>
+)
+
+<span class="keyword">func</span> <span class="function">validarEmail</span>(email <span class="type">string</span>) (<span class="type">bool</span>, <span class="type">string</span>) {
+    <span class="keyword">if</span> email == <span class="string">""</span> {
+        <span class="keyword">return</span> <span class="keyword">false</span>, <span class="string">"email não pode ser vazio"</span>
+    }
+    
+    <span class="keyword">if</span> !strings.<span class="function">Contains</span>(email, <span class="string">"@"</span>) {
+        <span class="keyword">return</span> <span class="keyword">false</span>, <span class="string">"email deve conter @"</span>
+    }
+    
+    partes := strings.<span class="function">Split</span>(email, <span class="string">"@"</span>)
+    <span class="keyword">if</span> <span class="function">len</span>(partes) != <span class="number">2</span> {
+        <span class="keyword">return</span> <span class="keyword">false</span>, <span class="string">"formato de email inválido"</span>
+    }
+    
+    <span class="keyword">if</span> partes[<span class="number">0</span>] == <span class="string">""</span> || partes[<span class="number">1</span>] == <span class="string">""</span> {
+        <span class="keyword">return</span> <span class="keyword">false</span>, <span class="string">"email incompleto"</span>
+    }
+    
+    <span class="keyword">return</span> <span class="keyword">true</span>, <span class="string">"email válido"</span>
+}
+
+<span class="keyword">func</span> <span class="function">validarSenha</span>(senha <span class="type">string</span>) (valida <span class="type">bool</span>, mensagens []<span class="type">string</span>) {
+    <span class="keyword">if</span> <span class="function">len</span>(senha) < <span class="number">8</span> {
+        mensagens = <span class="function">append</span>(mensagens, <span class="string">"senha deve ter pelo menos 8 caracteres"</span>)
+        <span class="keyword">return</span> <span class="keyword">false</span>, mensagens
+    }
+    
+    temMaiuscula := <span class="keyword">false</span>
+    temMinuscula := <span class="keyword">false</span>
+    temNumero := <span class="keyword">false</span>
+    
+    <span class="keyword">for</span> _, char := <span class="keyword">range</span> senha {
+        <span class="keyword">switch</span> {
+        <span class="keyword">case</span> char >= <span class="string">'A'</span> && char <= <span class="string">'Z'</span>:
+            temMaiuscula = <span class="keyword">true</span>
+        <span class="keyword">case</span> char >= <span class="string">'a'</span> && char <= <span class="string">'z'</span>:
+            temMinuscula = <span class="keyword">true</span>
+        <span class="keyword">case</span> char >= <span class="string">'0'</span> && char <= <span class="string">'9'</span>:
+            temNumero = <span class="keyword">true</span>
+        }
+    }
+    
+    <span class="keyword">if</span> !temMaiuscula {
+        mensagens = <span class="function">append</span>(mensagens, <span class="string">"senha deve conter letra maiúscula"</span>)
+    }
+    <span class="keyword">if</span> !temMinuscula {
+        mensagens = <span class="function">append</span>(mensagens, <span class="string">"senha deve conter letra minúscula"</span>)
+    }
+    <span class="keyword">if</span> !temNumero {
+        mensagens = <span class="function">append</span>(mensagens, <span class="string">"senha deve conter número"</span>)
+    }
+    
+    valida = temMaiuscula && temMinuscula && temNumero
+    <span class="keyword">if</span> valida {
+        mensagens = []<span class="type">string</span>{<span class="string">"senha válida"</span>}
+    }
+    
+    <span class="keyword">return</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Testando validação de email</span>
+    emails := []<span class="type">string</span>{<span class="string">"teste@gmail.com"</span>, <span class="string">"invalido"</span>, <span class="string">"@gmail.com"</span>}
+    
+    <span class="keyword">for</span> _, email := <span class="keyword">range</span> emails {
+        valido, msg := <span class="function">validarEmail</span>(email)
+        fmt.<span class="function">Printf</span>(<span class="string">"Email: %s - Válido: %t - %s\n"</span>, email, valido, msg)
+    }
+    
+    fmt.<span class="function">Println</span>()
+    
+    <span class="comment">// Testando validação de senha</span>
+    senhas := []<span class="type">string</span>{<span class="string">"Senha123"</span>, <span class="string">"fraca"</span>, <span class="string">"SemNumero"</span>}
+    
+    <span class="keyword">for</span> _, senha := <span class="keyword">range</span> senhas {
+        valida, msgs := <span class="function">validarSenha</span>(senha)
+        fmt.<span class="function">Printf</span>(<span class="string">"Senha: %s - Válida: %t\n"</span>, senha, valida)
+        <span class="keyword">for</span> _, msg := <span class="keyword">range</span> msgs {
+            fmt.<span class="function">Printf</span>(<span class="string">"  - %s\n"</span>, msg)
+        }
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Calculadora Funcional</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">calculadora_funcional.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"math"</span>
+)
+
+<span class="keyword">type</span> Operacao <span class="keyword">func</span>(<span class="type">float64</span>, <span class="type">float64</span>) <span class="type">float64</span>
+
+<span class="keyword">func</span> <span class="function">calcular</span>(a, b <span class="type">float64</span>, op Operacao) <span class="type">float64</span> {
+    <span class="keyword">return</span> <span class="function">op</span>(a, b)
+}
+
+<span class="keyword">func</span> <span class="function">aplicarOperacoes</span>(valores []<span class="type">float64</span>, operacoes ...Operacao) []<span class="type">float64</span> {
+    resultados := []<span class="type">float64</span>{}
+    
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="function">len</span>(valores)-<span class="number">1</span>; i++ {
+        <span class="keyword">for</span> _, op := <span class="keyword">range</span> operacoes {
+            res := <span class="function">op</span>(valores[i], valores[i+<span class="number">1</span>])
+            resultados = <span class="function">append</span>(resultados, res)
+        }
+    }
+    
+    <span class="keyword">return</span> resultados
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Definindo operações</span>
+    somar := <span class="keyword">func</span>(a, b <span class="type">float64</span>) <span class="type">float64</span> { <span class="keyword">return</span> a + b }
+    subtrair := <span class="keyword">func</span>(a, b <span class="type">float64</span>) <span class="type">float64</span> { <span class="keyword">return</span> a - b }
+    multiplicar := <span class="keyword">func</span>(a, b <span class="type">float64</span>) <span class="type">float64</span> { <span class="keyword">return</span> a * b }
+    dividir := <span class="keyword">func</span>(a, b <span class="type">float64</span>) <span class="type">float64</span> {
+        <span class="keyword">if</span> b == <span class="number">0</span> {
+            <span class="keyword">return</span> <span class="number">0</span>
+        }
+        <span class="keyword">return</span> a / b
+    }
+    potencia := <span class="keyword">func</span>(a, b <span class="type">float64</span>) <span class="type">float64</span> { <span class="keyword">return</span> math.<span class="function">Pow</span>(a, b) }
+    
+    <span class="comment">// Usando as operações</span>
+    fmt.<span class="function">Println</span>(<span class="string">"10 + 5 ="</span>, <span class="function">calcular</span>(<span class="number">10</span>, <span class="number">5</span>, somar))
+    fmt.<span class="function">Println</span>(<span class="string">"10 - 5 ="</span>, <span class="function">calcular</span>(<span class="number">10</span>, <span class="number">5</span>, subtrair))
+    fmt.<span class="function">Println</span>(<span class="string">"10 * 5 ="</span>, <span class="function">calcular</span>(<span class="number">10</span>, <span class="number">5</span>, multiplicar))
+    fmt.<span class="function">Println</span>(<span class="string">"10 / 5 ="</span>, <span class="function">calcular</span>(<span class="number">10</span>, <span class="number">5</span>, dividir))
+    fmt.<span class="function">Println</span>(<span class="string">"2 ^ 3 ="</span>, <span class="function">calcular</span>(<span class="number">2</span>, <span class="number">3</span>, potencia))
+    
+    fmt.<span class="function">Println</span>()
+    
+    <span class="comment">// Aplicando múltiplas operações</span>
+    valores := []<span class="type">float64</span>{<span class="number">10</span>, <span class="number">5</span>, <span class="number">2</span>}
+    resultados := <span class="function">aplicarOperacoes</span>(valores, somar, multiplicar)
+    
+    fmt.<span class="function">Println</span>(<span class="string">"Resultados:"</span>, resultados)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Resumo e Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas</h3>
+                <ul class="list">
+                    <li>Use nomes descritivos para funções (verbos ou ações)</li>
+                    <li>Funções devem fazer uma coisa e fazê-la bem</li>
+                    <li>Prefira múltiplos retornos ao invés de structs para valores simples</li>
+                    <li>Sempre retorne erros como último valor de retorno</li>
+                    <li>Use retornos nomeados apenas em funções curtas</li>
+                    <li>Documente funções exportadas (públicas) com comentários</li>
+                    <li>Use defer para garantir limpeza de recursos</li>
+                    <li>Evite funções muito longas (máximo 50-100 linhas)</li>
+                    <li>Limite o número de parâmetros (idealmente até 3-4)</li>
+                    <li>Use funções variádicas quando fizer sentido aceitar múltiplos valores</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">⚠️ Erros Comuns</h3>
+                <ul class="list">
+                    <li>Ignorar valores de retorno (especialmente erros)</li>
+                    <li>Usar naked returns em funções longas</li>
+                    <li>Não documentar o que a função faz</li>
+                    <li>Criar funções muito genéricas ou muito específicas</li>
+                    <li>Esquecer que defer executa em ordem LIFO</li>
+                    <li>Não validar entradas da função</li>
+                    <li>Usar recursão sem caso base (causa stack overflow)</li>
+                    <li>Modificar parâmetros slice/map sem documentar (side effects)</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">💡 Convenções de Nomenclatura</h3>
+                <ul class="list">
+                    <li><strong>Funções públicas:</strong> Iniciam com letra maiúscula (PascalCase)</li>
+                    <li><strong>Funções privadas:</strong> Iniciam com letra minúscula (camelCase)</li>
+                    <li><strong>Getters:</strong> Não use "Get" no nome (ex: <code>Name()</code>, não <code>GetName()</code>)</li>
+                    <li><strong>Setters:</strong> Use "Set" no nome (ex: <code>SetName()</code>)</li>
+                    <li><strong>Conversores:</strong> Use "To" (ex: <code>ToString()</code>)</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exercícios Práticos</h2>
+            
+            <div class="highlight-box">
+                <h3 style="margin-bottom: 15px;">🎯 Desafios</h3>
+                
+                <p><strong>1. Calculadora Estatística</strong></p>
+                <p style="margin-bottom: 15px;">Crie funções variádicas para calcular média, mediana, moda e desvio padrão de uma série de números.</p>
+                
+                <p><strong>2. Sistema de Desconto</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que retorna outra função (closure) para aplicar descontos. Ex: <code>criarDesconto(10%)</code> retorna função que aplica 10% de desconto.</p>
+                
+                <p><strong>3. Processador de Texto</strong></p>
+                <p style="margin-bottom: 15px;">Crie funções que recebam uma string e retornem: número de palavras, número de vogais, string invertida, e string com primeira letra de cada palavra maiúscula.</p>
+                
+                <p><strong>4. Sistema de Conversão</strong></p>
+                <p style="margin-bottom: 15px;">Crie um mapa de funções para converter unidades (temperatura, distância, peso). Use type para definir o tipo da função.</p>
+                
+                <p><strong>5. Gerador de Fibonacci</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que retorna uma closure que gera números de Fibonacci sob demanda (cada chamada retorna o próximo número).</p>
+                
+                <p><strong>6. Pipeline de Funções</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que aceita múltiplas funções e as executa em sequência, passando o resultado de uma para outra.</p>
+                
+                <p><strong>7. Cache com Closure</strong></p>
+                <p>Implemente uma função que retorna uma closure que faz cache de resultados de cálculos caros (memoization).</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>📚 Continue praticando e explore a documentação oficial do Go em <strong>go.dev</strong></p>
+            <p>💡 Próximo tópico: Arrays, Slices e Maps</p>
+        </footer>
+    </div>
+</body>
+</html>

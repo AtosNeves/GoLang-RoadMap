@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaitGroups e Mutex em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        .highlight-box.danger { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .back-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #666 0%, #999 100%);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #777 0%, #aaa 100%);
+        }
+        
+        .back-button::before {
+            content: '←';
+            font-size: 1.2rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+            .back-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>WaitGroups e Mutex</h1>
+            <p class="subtitle">Sincronização Avançada de Goroutines</p>
+        </header>
+        
+        <section class="section">
+            <h2>WaitGroup</h2>
+            
+            <p>WaitGroup é usado para aguardar que um conjunto de goroutines termine sua execução.</p>
+            
+            <h3>Uso Básico</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">waitgroup_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(id <span class="type">int</span>, wg *sync.WaitGroup) {
+    <span class="keyword">defer</span> wg.<span class="function">Done</span>() <span class="comment">// Decrementa contador ao finalizar</span>
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Worker %d iniciando\n"</span>, id)
+    time.<span class="function">Sleep</span>(time.Second)
+    fmt.<span class="function">Printf</span>(<span class="string">"Worker %d finalizado\n"</span>, id)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="keyword">for</span> i := <span class="number">1</span>; i <= <span class="number">5</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>) <span class="comment">// Incrementa contador</span>
+        <span class="keyword">go</span> <span class="function">worker</span>(i, &wg)
+    }
+    
+    wg.<span class="function">Wait</span>() <span class="comment">// Aguarda contador chegar a zero</span>
+    fmt.<span class="function">Println</span>(<span class="string">"Todos workers finalizados"</span>)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Importante:</strong> Sempre passe WaitGroup por ponteiro (*sync.WaitGroup). Se passar por valor, cada goroutine terá sua própria cópia e Wait() não funcionará corretamente.
+            </div>
+            
+            <h3>Padrão com Closure</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">waitgroup_closure.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">var</span> wg sync.WaitGroup
+    urls := []<span class="type">string</span>{
+        <span class="string">"https://golang.org"</span>,
+        <span class="string">"https://google.com"</span>,
+        <span class="string">"https://github.com"</span>,
+    }
+    
+    <span class="keyword">for</span> _, url := <span class="keyword">range</span> urls {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="keyword">func</span>(u <span class="type">string</span>) { <span class="comment">// Captura url como parâmetro</span>
+            <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+            fmt.<span class="function">Printf</span>(<span class="string">"Fetching %s\n"</span>, u)
+        }(url)
+    }
+    
+    wg.<span class="function">Wait</span>()
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Mutex</h2>
+            
+            <p>Mutex (Mutual Exclusion) garante que apenas uma goroutine acesse um recurso por vez.</p>
+            
+            <h3>Problema sem Mutex (Race Condition)</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">race_condition.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+)
+
+<span class="keyword">var</span> contador = <span class="number">0</span>
+
+<span class="keyword">func</span> <span class="function">incrementar</span>(wg *sync.WaitGroup) {
+    <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+    contador++ <span class="comment">// Race condition!</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">1000</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="function">incrementar</span>(&wg)
+    }
+    
+    wg.<span class="function">Wait</span>()
+    fmt.<span class="function">Println</span>(<span class="string">"Contador:"</span>, contador) <span class="comment">// Valor imprevisível!</span>
+}</code></pre>
+            </div>
+            
+            <h3>Solução com Mutex</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">mutex_solucao.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+)
+
+<span class="keyword">type</span> Contador <span class="keyword">struct</span> {
+    mu    sync.Mutex
+    valor <span class="type">int</span>
+}
+
+<span class="keyword">func</span> (c *Contador) <span class="function">Incrementar</span>() {
+    c.mu.<span class="function">Lock</span>()   <span class="comment">// Bloqueia acesso</span>
+    c.valor++
+    c.mu.<span class="function">Unlock</span>() <span class="comment">// Libera acesso</span>
+}
+
+<span class="keyword">func</span> (c *Contador) <span class="function">Valor</span>() <span class="type">int</span> {
+    c.mu.<span class="function">Lock</span>()
+    <span class="keyword">defer</span> c.mu.<span class="function">Unlock</span>()
+    <span class="keyword">return</span> c.valor
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    contador := &Contador{}
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">1000</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="keyword">func</span>() {
+            <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+            contador.<span class="function">Incrementar</span>()
+        }()
+    }
+    
+    wg.<span class="function">Wait</span>()
+    fmt.<span class="function">Println</span>(<span class="string">"Contador:"</span>, contador.<span class="function">Valor</span>()) <span class="comment">// 1000 garantido!</span>
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>RWMutex</h2>
+            
+            <p>RWMutex permite múltiplas leituras simultâneas, mas apenas uma escrita por vez.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">rwmutex.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">type</span> Cache <span class="keyword">struct</span> {
+    mu   sync.RWMutex
+    data <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>
+}
+
+<span class="keyword">func</span> <span class="function">NewCache</span>() *Cache {
+    <span class="keyword">return</span> &Cache{
+        data: <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>),
+    }
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Get</span>(key <span class="type">string</span>) (<span class="type">string</span>, <span class="type">bool</span>) {
+    c.mu.<span class="function">RLock</span>()         <span class="comment">// Read lock (múltiplos leitores)</span>
+    <span class="keyword">defer</span> c.mu.<span class="function">RUnlock</span>()
+    val, ok := c.data[key]
+    <span class="keyword">return</span> val, ok
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Set</span>(key, value <span class="type">string</span>) {
+    c.mu.<span class="function">Lock</span>()           <span class="comment">// Write lock (exclusivo)</span>
+    <span class="keyword">defer</span> c.mu.<span class="function">Unlock</span>()
+    c.data[key] = value
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    cache := <span class="function">NewCache</span>()
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="comment">// 1 escritor</span>
+    wg.<span class="function">Add</span>(<span class="number">1</span>)
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+        <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">10</span>; i++ {
+            cache.<span class="function">Set</span>(fmt.<span class="function">Sprintf</span>(<span class="string">"key%d"</span>, i), <span class="string">"valor"</span>)
+            time.<span class="function">Sleep</span>(<span class="number">100</span> * time.Millisecond)
+        }
+    }()
+    
+    <span class="comment">// 5 leitores simultâneos</span>
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">5</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="keyword">func</span>(id <span class="type">int</span>) {
+            <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+            <span class="keyword">for</span> j := <span class="number">0</span>; j < <span class="number">10</span>; j++ {
+                cache.<span class="function">Get</span>(<span class="string">"key0"</span>)
+                time.<span class="function">Sleep</span>(<span class="number">50</span> * time.Millisecond)
+            }
+        }(i)
+    }
+    
+    wg.<span class="function">Wait</span>()
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Pool de Conexões Thread-Safe</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">connection_pool.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"errors"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+)
+
+<span class="keyword">type</span> ConnectionPool <span class="keyword">struct</span> {
+    mu          sync.Mutex
+    connections []<span class="type">int</span>
+    maxSize     <span class="type">int</span>
+}
+
+<span class="keyword">func</span> <span class="function">NewConnectionPool</span>(maxSize <span class="type">int</span>) *ConnectionPool {
+    <span class="keyword">return</span> &ConnectionPool{
+        connections: <span class="function">make</span>([]<span class="type">int</span>, <span class="number">0</span>, maxSize),
+        maxSize:     maxSize,
+    }
+}
+
+<span class="keyword">func</span> (p *ConnectionPool) <span class="function">Get</span>() (<span class="type">int</span>, <span class="type">error</span>) {
+    p.mu.<span class="function">Lock</span>()
+    <span class="keyword">defer</span> p.mu.<span class="function">Unlock</span>()
+    
+    <span class="keyword">if</span> <span class="function">len</span>(p.connections) == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">0</span>, errors.<span class="function">New</span>(<span class="string">"no connections available"</span>)
+    }
+    
+    conn := p.connections[<span class="function">len</span>(p.connections)-<span class="number">1</span>]
+    p.connections = p.connections[:<span class="function">len</span>(p.connections)-<span class="number">1</span>]
+    <span class="keyword">return</span> conn, <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> (p *ConnectionPool) <span class="function">Put</span>(conn <span class="type">int</span>) {
+    p.mu.<span class="function">Lock</span>()
+    <span class="keyword">defer</span> p.mu.<span class="function">Unlock</span>()
+    
+    <span class="keyword">if</span> <span class="function">len</span>(p.connections) < p.maxSize {
+        p.connections = <span class="function">append</span>(p.connections, conn)
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    pool := <span class="function">NewConnectionPool</span>(<span class="number">5</span>)
+    
+    <span class="comment">// Adiciona conexões</span>
+    <span class="keyword">for</span> i := <span class="number">1</span>; i <= <span class="number">5</span>; i++ {
+        pool.<span class="function">Put</span>(i)
+    }
+    
+    <span class="keyword">var</span> wg sync.WaitGroup
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">10</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="keyword">func</span>(id <span class="type">int</span>) {
+            <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+            conn, err := pool.<span class="function">Get</span>()
+            <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+                fmt.<span class="function">Printf</span>(<span class="string">"Worker %d: %v\n"</span>, id, err)
+                <span class="keyword">return</span>
+            }
+            fmt.<span class="function">Printf</span>(<span class="string">"Worker %d usando conexão %d\n"</span>, id, conn)
+            pool.<span class="function">Put</span>(conn)
+        }(i)
+    }
+    
+    wg.<span class="function">Wait</span>()
+}</code></pre>
+            </div>
+            
+            <h3>2. Atomic Operations</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">atomic.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"sync/atomic"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">var</span> contador <span class="type">int64</span>
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">1000</span>; i++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="keyword">func</span>() {
+            <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+            atomic.<span class="function">AddInt64</span>(&contador, <span class="number">1</span>) <span class="comment">// Thread-safe sem mutex</span>
+        }()
+    }
+    
+    wg.<span class="function">Wait</span>()
+    fmt.<span class="function">Println</span>(<span class="string">"Contador:"</span>, atomic.<span class="function">LoadInt64</span>(&contador))
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">WaitGroup</h3>
+                <ul class="list">
+                    <li>Sempre passe WaitGroup por ponteiro</li>
+                    <li>Chame Add() antes de iniciar a goroutine</li>
+                    <li>Use defer para garantir que Done() seja chamado</li>
+                    <li>Nunca copie um WaitGroup após o primeiro uso</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Mutex</h3>
+                <ul class="list">
+                    <li>Use defer para garantir Unlock()</li>
+                    <li>Mantenha seções críticas pequenas</li>
+                    <li>Nunca bloqueie por muito tempo</li>
+                    <li>Prefira RWMutex quando leituras são frequentes</li>
+                    <li>Use atomic para operações simples em números</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box danger">
+                <h3 style="margin-bottom: 15px;">Evite Deadlocks</h3>
+                <ul class="list">
+                    <li>Nunca chame Lock() duas vezes sem Unlock()</li>
+                    <li>Sempre use defer para Unlock()</li>
+                    <li>Evite locks aninhados quando possível</li>
+                    <li>Documente ordem de locks se necessário</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Sincronização adequada é essencial para programação concorrente segura</p>
+        </footer>
+    </div>
+    
+    <a href="Roadmap.html" class="back-button">Voltar ao Roadmap</a>
+</body>
+</html>

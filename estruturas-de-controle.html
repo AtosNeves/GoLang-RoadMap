@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operadores e Estruturas de Controle em Go</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            margin: 0;
+            color: #e4e4e7;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            text-align: left;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #b0b0b0;
+        }
+        
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+        
+        .highlight-box.info {
+            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        
+        .highlight-box.success {
+            border-left-color: #34d399;
+            background: rgba(52, 211, 153, 0.05);
+        }
+        
+        ul {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            color: #b0b0b0;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Operadores e Estruturas de Controle</h1>
+            <p class="subtitle">Domine o fluxo de controle em Go</p>
+        </header>
+        
+        <section class="section">
+            <h2>Operadores Aritméticos</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operador</th>
+                        <th>Descrição</th>
+                        <th>Exemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>+</code></td>
+                        <td>Adição</td>
+                        <td><code>5 + 3 = 8</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>-</code></td>
+                        <td>Subtração</td>
+                        <td><code>5 - 3 = 2</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>*</code></td>
+                        <td>Multiplicação</td>
+                        <td><code>5 * 3 = 15</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/</code></td>
+                        <td>Divisão</td>
+                        <td><code>10 / 3 = 3</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>%</code></td>
+                        <td>Módulo</td>
+                        <td><code>10 % 3 = 1</code></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="code-block">
+                <pre>package main
+
+import "fmt"
+
+func main() {
+    a, b := 10, 3
+    
+    fmt.Println("Adição:", a + b)        // 13
+    fmt.Println("Subtração:", a - b)     // 7
+    fmt.Println("Multiplicação:", a * b) // 30
+    fmt.Println("Divisão:", a / b)       // 3
+    fmt.Println("Módulo:", a % b)        // 1
+}</pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Operadores de Comparação</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operador</th>
+                        <th>Descrição</th>
+                        <th>Exemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>==</code></td>
+                        <td>Igual a</td>
+                        <td><code>5 == 5 // true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>!=</code></td>
+                        <td>Diferente de</td>
+                        <td><code>5 != 3 // true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;</code></td>
+                        <td>Menor que</td>
+                        <td><code>3 &lt; 5 // true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>&gt;</code></td>
+                        <td>Maior que</td>
+                        <td><code>5 &gt; 3 // true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;=</code></td>
+                        <td>Menor ou igual</td>
+                        <td><code>3 &lt;= 5 // true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>&gt;=</code></td>
+                        <td>Maior ou igual</td>
+                        <td><code>5 &gt;= 5 // true</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section class="section">
+            <h2>Operadores Lógicos</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operador</th>
+                        <th>Descrição</th>
+                        <th>Exemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>&&</code></td>
+                        <td>E lógico (AND)</td>
+                        <td><code>true && false = false</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>||</code></td>
+                        <td>OU lógico (OR)</td>
+                        <td><code>true || false = true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>!</code></td>
+                        <td>NÃO lógico (NOT)</td>
+                        <td><code>!true = false</code></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="code-block">
+                <pre>idade := 20
+temCarteira := true
+
+// Pode dirigir se tem mais de 18 E tem carteira
+podeDirigir := idade >= 18 && temCarteira  // true</pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Estrutura If/Else</h2>
+            
+            <p>A estrutura if permite executar código condicionalmente. Em Go, NÃO use parênteses ao redor da condição.</p>
+            
+            <h3>If Básico</h3>
+            
+            <div class="code-block">
+                <pre>package main
+
+import "fmt"
+
+func main() {
+    idade := 20
+    
+    // If simples
+    if idade >= 18 {
+        fmt.Println("Maior de idade")
+    }
+    
+    // If-else
+    if idade >= 18 {
+        fmt.Println("Pode votar")
+    } else {
+        fmt.Println("Não pode votar")
+    }
+    
+    // If-else if-else
+    nota := 85
+    
+    if nota >= 90 {
+        fmt.Println("Nota A")
+    } else if nota >= 80 {
+        fmt.Println("Nota B")
+    } else if nota >= 70 {
+        fmt.Println("Nota C")
+    } else {
+        fmt.Println("Nota D")
+    }
+}</pre>
+            </div>
+            
+            <h3>If com Statement Inicial</h3>
+            
+            <p>Go permite declarar uma variável no próprio if. Essa variável só existe no escopo do if/else.</p>
+            
+            <div class="code-block">
+                <pre>// Declaração de variável dentro do if
+if x := 10; x > 5 {
+    fmt.Println("x é maior que 5")
+}
+// x não está disponível aqui!
+
+// Padrão comum: checando erros
+if err := fazerAlgo(); err != nil {
+    fmt.Println("Erro:", err)
+}</pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>⚠️ Importante:</strong> Em Go, NÃO use parênteses ao redor da condição do if. Isso é um erro de sintaxe.
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Estrutura Switch</h2>
+            
+            <p>O switch em Go é mais poderoso que em muitas outras linguagens e NÃO tem fall-through automático.</p>
+            
+            <h3>Switch Básico</h3>
+            
+            <div class="code-block">
+                <pre>dia := "segunda"
+
+switch dia {
+case "segunda":
+    fmt.Println("Início da semana")
+case "terça", "quarta", "quinta":
+    fmt.Println("Meio da semana")
+case "sexta":
+    fmt.Println("Sextou!")
+case "sábado", "domingo":
+    fmt.Println("Final de semana")
+default:
+    fmt.Println("Dia inválido")
+}</pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>💡 Diferença importante:</strong> Em Go, o switch NÃO tem "fall through" automático. Você não precisa usar break ao final de cada case!
+            </div>
+            
+            <h3>Switch com Condições</h3>
+            
+            <div class="code-block">
+                <pre>nota := 85
+
+// Switch sem expressão (como if-else)
+switch {
+case nota >= 90:
+    fmt.Println("Excelente!")
+case nota >= 80:
+    fmt.Println("Muito bom!")
+case nota >= 70:
+    fmt.Println("Bom")
+case nota >= 60:
+    fmt.Println("Suficiente")
+default:
+    fmt.Println("Insuficiente")
+}</pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Loops (For)</h2>
+            
+            <p>Go tem apenas uma estrutura de loop: for. Mas ela é extremamente versátil.</p>
+            
+            <h3>For Clássico</h3>
+            
+            <div class="code-block">
+                <pre>// For com inicialização, condição e pós-iteração
+for i := 0; i < 5; i++ {
+    fmt.Println(i)
+}
+
+// Contagem regressiva
+for i := 10; i >= 0; i-- {
+    fmt.Println(i)
+}</pre>
+            </div>
+            
+            <h3>For como While</h3>
+            
+            <div class="code-block">
+                <pre>// For com apenas condição
+contador := 0
+for contador < 5 {
+    fmt.Println(contador)
+    contador++
+}</pre>
+            </div>
+            
+            <h3>Loop Infinito</h3>
+            
+            <div class="code-block">
+                <pre>contador := 0
+
+for {
+    contador++
+    fmt.Println(contador)
+    
+    if contador == 5 {
+        break  // Sai do loop
+    }
+}</pre>
+            </div>
+            
+            <h3>For com Range</h3>
+            
+            <div class="code-block">
+                <pre>// Range em slice
+numeros := []int{10, 20, 30, 40, 50}
+
+for indice, valor := range numeros {
+    fmt.Printf("Índice: %d, Valor: %d\n", indice, valor)
+}
+
+// Ignorando o índice com _
+for _, valor := range numeros {
+    fmt.Println(valor)
+}
+
+// Range em map
+idades := map[string]int{
+    "João":  25,
+    "Maria": 30,
+}
+
+for nome, idade := range idades {
+    fmt.Printf("%s tem %d anos\n", nome, idade)
+}</pre>
+            </div>
+            
+            <h3>Break e Continue</h3>
+            
+            <div class="code-block">
+                <pre>// Break - sai do loop
+for i := 0; i < 10; i++ {
+    if i == 5 {
+        break  // Para o loop quando i = 5
+    }
+    fmt.Println(i)
+}
+
+// Continue - pula para próxima iteração
+for i := 0; i < 10; i++ {
+    if i%2 == 0 {
+        continue  // Pula números pares
+    }
+    fmt.Println(i)  // Imprime apenas ímpares
+}</pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exemplo Prático: Calculadora</h2>
+            
+            <div class="code-block">
+                <pre>package main
+
+import "fmt"
+
+func calculadora(a, b float64, operacao string) (float64, error) {
+    switch operacao {
+    case "+":
+        return a + b, nil
+    case "-":
+        return a - b, nil
+    case "*":
+        return a * b, nil
+    case "/":
+        if b == 0 {
+            return 0, fmt.Errorf("divisão por zero")
+        }
+        return a / b, nil
+    default:
+        return 0, fmt.Errorf("operação inválida")
+    }
+}
+
+func main() {
+    resultado, err := calculadora(10, 5, "+")
+    if err != nil {
+        fmt.Println("Erro:", err)
+        return
+    }
+    fmt.Println("Resultado:", resultado)
+}</pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3>✅ If/Else</h3>
+                <ul>
+                    <li>Não use parênteses ao redor da condição</li>
+                    <li>Use if com statement inicial para limitar escopo</li>
+                    <li>Prefira early return ao invés de else desnecessário</li>
+                    <li>Mantenha condições simples e legíveis</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3>✅ Switch</h3>
+                <ul>
+                    <li>Use switch sem expressão para substituir if-else encadeados</li>
+                    <li>Aproveite que não precisa de break</li>
+                    <li>Use múltiplos valores em um case quando aplicável</li>
+                    <li>Coloque o caso mais comum primeiro</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3>✅ Loops</h3>
+                <ul>
+                    <li>Use range sempre que possível para iterar coleções</li>
+                    <li>Use _ para ignorar valores desnecessários no range</li>
+                    <li>Evite modificar a variável de iteração dentro do loop</li>
+                    <li>Cuidado com referências em range (o valor é copiado)</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exercícios Práticos</h2>
+            
+            <div class="highlight-box">
+                <h3>🎯 Desafios</h3>
+                
+                <p><strong>1. FizzBuzz</strong></p>
+                <p>Imprima números de 1 a 100. Para múltiplos de 3 imprima "Fizz", para múltiplos de 5 imprima "Buzz", e para múltiplos de ambos imprima "FizzBuzz".</p>
+                
+                <p><strong>2. Calculadora de IMC</strong></p>
+                <p>Crie um programa que calcule o IMC e use switch para classificar o resultado.</p>
+                
+                <p><strong>3. Sequência de Fibonacci</strong></p>
+                <p>Gere os primeiros N números da sequência de Fibonacci usando um loop.</p>
+                
+                <p><strong>4. Validador de Senha</strong></p>
+                <p>Crie uma função que valide uma senha verificando: tamanho mínimo, possui letra maiúscula, minúscula, número e caractere especial.</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>📚 Continue praticando e explore a documentação oficial do Go</p>
+            <p>💡 Próximo tópico: Funções e Múltiplos Retornos</p>
+        </footer>
+    </div>
+</body>
+</html>

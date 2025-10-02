@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap de Estudos: Golang + GoFiber para Backend</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 20px;
+        }
+        
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -2px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            margin: 40px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #666 0%, #999 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .phase-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .phase-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transform: translateY(-4px);
+        }
+        
+        .phase-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .phase-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .phase-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #333 0%, #666 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .duration-badge {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+        
+        .section-subtitle {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ddd;
+            margin: 30px 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-subtitle::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 2px;
+        }
+        
+        .topic-list {
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+        
+        .topic-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .topic-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateX(8px);
+        }
+        
+        .topic-item.checked {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        
+        .topic-item.has-link {
+            cursor: pointer;
+        }
+        
+        .topic-item.has-link:hover {
+            background: rgba(120, 119, 198, 0.1);
+            border-color: rgba(120, 119, 198, 0.3);
+        }
+        
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #666;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        
+        .topic-text {
+            flex: 1;
+            color: #ccc;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .link-badge {
+            background: rgba(120, 119, 198, 0.2);
+            border: 1px solid rgba(120, 119, 198, 0.3);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #a0a0ff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .special-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 50px;
+        }
+        
+        .special-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+        }
+        
+        .description {
+            color: #888;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        
+        .tip-list {
+            list-style: none;
+            counter-reset: tip-counter;
+        }
+        
+        .tip-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            counter-increment: tip-counter;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .tip-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        .tip-item::before {
+            content: counter(tip-counter);
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #333 0%, #555 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .phase-card {
+                padding: 25px;
+            }
+            
+            .phase-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .phase-title {
+                font-size: 1.5rem;
+            }
+            
+            header {
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Roadmap Golang + GoFiber</h1>
+            <p class="subtitle">Backend Development Journey</p>
+        </header>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">1</div>
+                    Fundamentos de Go
+                </div>
+                <div class="duration-badge">2-3 semanas</div>
+            </div>
+            
+            <h3 class="section-subtitle">Semana 1-2: Sintaxe e Conceitos Básicos</h3>
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Instalação e configuração do ambiente Go</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('tipos-de-dados.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Variáveis, tipos de dados e constantes</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('operadores-controle.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Operadores e estruturas de controle (if, switch, loops)</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('funcoes.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Funções, múltiplos retornos e funções variádicas</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('arrays-slices-maps.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Arrays, slices e maps</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('structs-metodos.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Structs e métodos</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('ponteiros.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Ponteiros e sua importância em Go</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+            </ul>
+            
+            <h3 class="section-subtitle">Semana 2-3: Conceitos Intermediários</h3>
+            <ul class="topic-list">
+                <li class="topic-item has-link" onclick="window.open('interfaces.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Interfaces e polimorfismo</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('error-handling.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Error handling (padrão de Go)</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('goroutines.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Goroutines e concorrência básica</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('channels.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Channels para comunicação entre goroutines</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('select.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Select statement</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('defer-panic-recover.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Defer, panic e recover</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+                <li class="topic-item has-link" onclick="window.open('packages.html', '_blank')">
+                    <input type="checkbox" onchange="updateProgress(); event.stopPropagation()">
+                    <span class="topic-text">Packages e organização de código</span>
+                    <span class="link-badge">Ver Conteúdo</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">2</div>
+                    Go Avançado e Práticas
+                </div>
+                <div class="duration-badge">2-3 semanas</div>
+            </div>
+            
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Context para controle de requisições</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">WaitGroups e Mutex para sincronização</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Trabalhando com JSON (encoding/decoding)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">File I/O e manipulação de arquivos</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Testing em Go (testes unitários e de integração)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Benchmarking e profiling</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Go modules e gerenciamento de dependências</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Boas práticas e padrões de projeto em Go</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">3</div>
+                    Desenvolvimento Web com Go Puro
+                </div>
+                <div class="duration-badge">1-2 semanas</div>
+            </div>
+            
+            <p class="description">Antes de partir para frameworks, entenda o básico:</p>
+            
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Package net/http (servidor HTTP nativo)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Handlers e HandlerFuncs</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Routing básico</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Middleware concept</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Request e Response handling</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Query parameters e path variables</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">4</div>
+                    GoFiber Framework
+                </div>
+                <div class="duration-badge">2-3 semanas</div>
+            </div>
+            
+            <h3 class="section-subtitle">Fundamentos do Fiber</h3>
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Instalação e setup inicial do Fiber</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Routing (GET, POST, PUT, DELETE, PATCH)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Route parameters e query strings</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Request body parsing</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Response methods (JSON, XML, HTML)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Static files serving</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Template engines (html/template)</span>
+                </li>
+            </ul>
+            
+            <h3 class="section-subtitle">Recursos Avançados</h3>
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Middleware (built-in e custom)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Error handling no Fiber</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Validation de dados</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">File uploads</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Cookies e sessions</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">WebSockets</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Rate limiting</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">CORS configuration</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Compression</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">5</div>
+                    Backend Completo
+                </div>
+                <div class="duration-badge">3-4 semanas</div>
+            </div>
+            
+            <h3 class="section-subtitle">Banco de Dados</h3>
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">SQL com database/sql (PostgreSQL ou MySQL)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">GORM (ORM para Go)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Migrations de banco</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Queries complexas e otimização</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Transações</span>
+                </li>
+            </ul>
+            
+            <h3 class="section-subtitle">Autenticação e Segurança</h3>
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">JWT (JSON Web Tokens)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Hashing de senhas (bcrypt)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Middleware de autenticação</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">HTTPS e TLS</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Proteção contra SQL injection e XSS</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Rate limiting e throttling</span>
+                </li>
+            </ul>
+            
+            <h3 class="section-subtitle">Arquitetura e Design</h3>
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Clean Architecture / Hexagonal Architecture</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Repository Pattern</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Dependency Injection</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Separação em camadas (handlers, services, repositories)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">DTOs e validação de dados</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">6</div>
+                    Ferramentas e DevOps
+                </div>
+                <div class="duration-badge">2 semanas</div>
+            </div>
+            
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Variáveis de ambiente (.env)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Logging estruturado (zerolog, zap)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Docker e containerização</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Docker Compose para ambiente local</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">CI/CD básico (GitHub Actions)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Documentação de API (Swagger)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Monitoramento e métricas (Prometheus)</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-card">
+            <div class="phase-header">
+                <div class="phase-title">
+                    <div class="phase-number">7</div>
+                    Projeto Prático Final
+                </div>
+                <div class="duration-badge">2-3 semanas</div>
+            </div>
+            
+            <p class="description">Construa uma API REST completa com:</p>
+            
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Sistema de autenticação (registro, login, refresh token)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">CRUD de recursos principais</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Relacionamentos entre entidades</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Upload de arquivos</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Paginação e filtros</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Testes automatizados (unitários e integração)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Documentação da API</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span class="topic-text">Deploy em cloud (Railway, Fly.io ou Render)</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="special-section">
+            <h2 class="special-title">
+                <span class="icon">📚</span>
+                Recursos de Estudo Recomendados
+            </h2>
+            
+            <ul class="topic-list">
+                <li class="topic-item">
+                    <input type="checkbox">
+                    <span class="topic-text"><strong>Documentação Oficial:</strong> go.dev/doc e docs.gofiber.io</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox">
+                    <span class="topic-text"><strong>Tour of Go:</strong> tour.golang.org (interativo)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox">
+                    <span class="topic-text"><strong>Go by Example:</strong> gobyexample.com</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox">
+                    <span class="topic-text"><strong>Livros:</strong> "The Go Programming Language" e "Let's Go" (Alex Edwards)</span>
+                </li>
+                <li class="topic-item">
+                    <input type="checkbox">
+                    <span class="topic-text"><strong>YouTube:</strong> Aprenda Go, TechWorld with Nana</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="special-section">
+            <h2 class="special-title">
+                <span class="icon">💡</span>
+                Dicas Importantes
+            </h2>
+            
+            <ul class="tip-list">
+                <li class="tip-item">
+                    <input type="checkbox">
+                    <span class="topic-text">Pratique todos os dias, mesmo que por 30 minutos</span>
+                </li>
+                <li class="tip-item">
+                    <input type="checkbox">
+                    <span class="topic-text">Faça mini-projetos em cada fase para fixar</span>
+                </li>
+                <li class="tip-item">
+                    <input type="checkbox">
+                    <span class="topic-text">Leia código Go de projetos open source</span>
+                </li>
+                <li class="tip-item">
+                    <input type="checkbox">
+                    <span class="topic-text">Não pule os fundamentos de Go para ir direto ao Fiber</span>
+                </li>
+                <li class="tip-item">
+                    <input type="checkbox">
+                    <span class="topic-text">Entenda concorrência antes de trabalhar com produção</span>
+                </li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>Mantenha o foco e boa jornada de aprendizado!</p>
+        </footer>
+    </div>
+    
+    <script>
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const total = checkboxes.length;
+            let checked = 0;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    checked++;
+                    checkbox.parentElement.classList.add('checked');
+                } else {
+                    checkbox.parentElement.classList.remove('checked');
+                }
+            });
+            
+            const percentage = (checked / total) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+        
+        // Carregar progresso salvo
+        window.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((checkbox, index) => {
+                const saved = localStorage.getItem(`checkbox-${index}`);
+                if (saved === 'true') {
+                    checkbox.checked = true;
+                }
+            });
+            updateProgress();
+        });
+        
+        // Salvar progresso
+        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(`checkbox-${index}`, checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>

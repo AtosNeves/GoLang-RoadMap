@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Statement em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Select Statement</h1>
+            <p class="subtitle">Multiplexação de Operações em Channels</p>
+            <div class="nav-links">
+                <a href="#conceito" class="nav-link">O que é</a>
+                <a href="#sintaxe" class="nav-link">Sintaxe</a>
+                <a href="#padroes" class="nav-link">Padrões</a>
+                <a href="#pratico" class="nav-link">Exemplos</a>
+            </div>
+        </header>
+        
+        <section id="conceito" class="section">
+            <h2>O que é Select?</h2>
+            
+            <p>O <strong>select</strong> permite aguardar múltiplas operações de channel simultaneamente. É como um switch, mas para comunicação de channels.</p>
+            
+            <div class="highlight-box info">
+                <strong>Analogia:</strong> Select é como um atendente que monitora várias filas ao mesmo tempo e atende a primeira que tiver alguém.
+            </div>
+            
+            <h3>Select Básico</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">select_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch1 := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    ch2 := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        time.<span class="function">Sleep</span>(<span class="number">1</span> * time.Second)
+        ch1 <- <span class="string">"canal 1"</span>
+    }()
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+        ch2 <- <span class="string">"canal 2"</span>
+    }()
+    
+    <span class="comment">// Select espera pelo primeiro canal pronto</span>
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">2</span>; i++ {
+        <span class="keyword">select</span> {
+        <span class="keyword">case</span> msg1 := <-ch1:
+            fmt.<span class="function">Println</span>(<span class="string">"Recebido:"</span>, msg1)
+        <span class="keyword">case</span> msg2 := <-ch2:
+            fmt.<span class="function">Println</span>(<span class="string">"Recebido:"</span>, msg2)
+        }
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="sintaxe" class="section">
+            <h2>Sintaxe e Comportamento</h2>
+            
+            <h3>Case Default</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">select_default.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> val := <-ch:
+        fmt.<span class="function">Println</span>(<span class="string">"Recebido:"</span>, val)
+    <span class="keyword">default</span>:
+        fmt.<span class="function">Println</span>(<span class="string">"Nenhum valor disponível"</span>)
+    }
+    
+    <span class="comment">// Loop não bloqueante</span>
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">5</span>; i++ {
+        <span class="keyword">select</span> {
+        <span class="keyword">case</span> val := <-ch:
+            fmt.<span class="function">Printf</span>(<span class="string">"Valor: %d\n"</span>, val)
+        <span class="keyword">default</span>:
+            fmt.<span class="function">Println</span>(<span class="string">"Trabalhando..."</span>)
+            time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+        }
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Select com Timeout</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">select_timeout.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+        ch <- <span class="string">"resultado"</span>
+    }()
+    
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> res := <-ch:
+        fmt.<span class="function">Println</span>(<span class="string">"Recebido:"</span>, res)
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">1</span> * time.Second):
+        fmt.<span class="function">Println</span>(<span class="string">"Timeout!"</span>)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Select para Envio e Recebimento</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">select_send_receive.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ch1 := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    ch2 := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="keyword">for</span> {
+            <span class="keyword">select</span> {
+            <span class="keyword">case</span> ch1 <- <span class="number">1</span>:
+                fmt.<span class="function">Println</span>(<span class="string">"Enviado para ch1"</span>)
+            <span class="keyword">case</span> ch2 <- <span class="number">2</span>:
+                fmt.<span class="function">Println</span>(<span class="string">"Enviado para ch2"</span>)
+            <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">100</span> * time.Millisecond):
+                fmt.<span class="function">Println</span>(<span class="string">"Timeout no envio"</span>)
+                <span class="keyword">return</span>
+            }
+        }
+    }()
+    
+    time.<span class="function">Sleep</span>(<span class="number">50</span> * time.Millisecond)
+    fmt.<span class="function">Println</span>(<-ch1)
+    time.<span class="function">Sleep</span>(<span class="number">200</span> * time.Millisecond)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="padroes" class="section">
+            <h2>Padrões Comuns</h2>
+            
+            <h3>1. Timeout Pattern</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">pattern_timeout.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">operacaoLenta</span>() <span class="type">string</span> {
+    time.<span class="function">Sleep</span>(<span class="number">3</span> * time.Second)
+    <span class="keyword">return</span> <span class="string">"Concluído"</span>
+}
+
+<span class="keyword">func</span> <span class="function">executarComTimeout</span>(timeout time.Duration) <span class="type">string</span> {
+    resultado := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>, <span class="number">1</span>)
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        resultado <- <span class="function">operacaoLenta</span>()
+    }()
+    
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> res := <-resultado:
+        <span class="keyword">return</span> res
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(timeout):
+        <span class="keyword">return</span> <span class="string">"Timeout!"</span>
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    fmt.<span class="function">Println</span>(<span class="function">executarComTimeout</span>(<span class="number">1</span> * time.Second))
+    fmt.<span class="function">Println</span>(<span class="function">executarComTimeout</span>(<span class="number">5</span> * time.Second))
+}</code></pre>
+            </div>
+            
+            <h3>2. Done Channel Pattern</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">pattern_done.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(done <-<span class="keyword">chan</span> <span class="keyword">bool</span>) {
+    <span class="keyword">for</span> {
+        <span class="keyword">select</span> {
+        <span class="keyword">case</span> <-done:
+            fmt.<span class="function">Println</span>(<span class="string">"Worker encerrando"</span>)
+            <span class="keyword">return</span>
+        <span class="keyword">default</span>:
+            fmt.<span class="function">Println</span>(<span class="string">"Trabalhando..."</span>)
+            time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+        }
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    done := <span class="function">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>)
+    
+    <span class="keyword">go</span> <span class="function">worker</span>(done)
+    
+    time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+    done <- <span class="keyword">true</span>
+    
+    time.<span class="function">Sleep</span>(<span class="number">1</span> * time.Second)
+}</code></pre>
+            </div>
+            
+            <h3>3. Ticker Pattern</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">pattern_ticker.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ticker := time.<span class="function">NewTicker</span>(<span class="number">500</span> * time.Millisecond)
+    done := <span class="function">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>)
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="keyword">for</span> {
+            <span class="keyword">select</span> {
+            <span class="keyword">case</span> t := <-ticker.C:
+                fmt.<span class="function">Println</span>(<span class="string">"Tick em"</span>, t)
+            <span class="keyword">case</span> <-done:
+                ticker.<span class="function">Stop</span>()
+                <span class="keyword">return</span>
+            }
+        }
+    }()
+    
+    time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+    done <- <span class="keyword">true</span>
+    
+    fmt.<span class="function">Println</span>(<span class="string">"Ticker encerrado"</span>)
+    time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Agregador de Múltiplas Fontes</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">agregador.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">buscarAPI1</span>() <-<span class="keyword">chan</span> <span class="type">string</span> {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        time.<span class="function">Sleep</span>(<span class="number">1</span> * time.Second)
+        ch <- <span class="string">"Dados API 1"</span>
+    }()
+    <span class="keyword">return</span> ch
+}
+
+<span class="keyword">func</span> <span class="function">buscarAPI2</span>() <-<span class="keyword">chan</span> <span class="type">string</span> {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+        ch <- <span class="string">"Dados API 2"</span>
+    }()
+    <span class="keyword">return</span> ch
+}
+
+<span class="keyword">func</span> <span class="function">buscarCache</span>() <-<span class="keyword">chan</span> <span class="type">string</span> {
+    ch := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        time.<span class="function">Sleep</span>(<span class="number">100</span> * time.Millisecond)
+        ch <- <span class="string">"Dados do Cache"</span>
+    }()
+    <span class="keyword">return</span> ch
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    api1 := <span class="function">buscarAPI1</span>()
+    api2 := <span class="function">buscarAPI2</span>()
+    cache := <span class="function">buscarCache</span>()
+    
+    <span class="comment">// Pega o primeiro resultado disponível</span>
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> dados := <-cache:
+        fmt.<span class="function">Println</span>(<span class="string">"Usando:"</span>, dados)
+    <span class="keyword">case</span> dados := <-api1:
+        fmt.<span class="function">Println</span>(<span class="string">"Usando:"</span>, dados)
+    <span class="keyword">case</span> dados := <-api2:
+        fmt.<span class="function">Println</span>(<span class="string">"Usando:"</span>, dados)
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">3</span> * time.Second):
+        fmt.<span class="function">Println</span>(<span class="string">"Timeout geral"</span>)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>2. Rate Limiter</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">rate_limiter.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    requisicoes := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">5</span>)
+    <span class="keyword">for</span> i := <span class="number">1</span>; i <= <span class="number">5</span>; i++ {
+        requisicoes <- i
+    }
+    <span class="function">close</span>(requisicoes)
+    
+    <span class="comment">// Limita a 1 requisição por 200ms</span>
+    limiter := time.<span class="function">Tick</span>(<span class="number">200</span> * time.Millisecond)
+    
+    <span class="keyword">for</span> req := <span class="keyword">range</span> requisicoes {
+        <-limiter
+        fmt.<span class="function">Println</span>(<span class="string">"Requisição"</span>, req, time.<span class="function">Now</span>())
+    }
+    
+    fmt.<span class="function">Println</span>(<span class="string">"\n--- Com burst de 3 ---\n"</span>)
+    
+    <span class="comment">// Permite burst de 3 requisições</span>
+    burstyLimiter := <span class="function">make</span>(<span class="keyword">chan</span> time.Time, <span class="number">3</span>)
+    
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="number">3</span>; i++ {
+        burstyLimiter <- time.<span class="function">Now</span>()
+    }
+    
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        <span class="keyword">for</span> t := <span class="keyword">range</span> time.<span class="function">Tick</span>(<span class="number">200</span> * time.Millisecond) {
+            burstyLimiter <- t
+        }
+    }()
+    
+    burstyReqs := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">5</span>)
+    <span class="keyword">for</span> i := <span class="number">1</span>; i <= <span class="number">5</span>; i++ {
+        burstyReqs <- i
+    }
+    <span class="function">close</span>(burstyReqs)
+    
+    <span class="keyword">for</span> req := <span class="keyword">range</span> burstyReqs {
+        <-burstyLimiter
+        fmt.<span class="function">Println</span>(<span class="string">"Requisição"</span>, req, time.<span class="function">Now</span>())
+    }
+}</code></pre>
+            </div>
+            
+            <h3>3. Context Cancellation</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">cancellation.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">operacao</span>(ctx context.Context) {
+    <span class="keyword">for</span> {
+        <span class="keyword">select</span> {
+        <span class="keyword">case</span> <-ctx.<span class="function">Done</span>():
+            fmt.<span class="function">Println</span>(<span class="string">"Operação cancelada:"</span>, ctx.<span class="function">Err</span>())
+            <span class="keyword">return</span>
+        <span class="keyword">default</span>:
+            fmt.<span class="function">Println</span>(<span class="string">"Executando..."</span>)
+            time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+        }
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ctx, cancel := context.<span class="function">WithTimeout</span>(context.<span class="function">Background</span>(), <span class="number">2</span>*time.Second)
+    <span class="keyword">defer</span> <span class="function">cancel</span>()
+    
+    <span class="keyword">go</span> <span class="function">operacao</span>(ctx)
+    
+    time.<span class="function">Sleep</span>(<span class="number">3</span> * time.Second)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Faça</h3>
+                <ul class="list">
+                    <li>Use select para coordenar múltiplos channels</li>
+                    <li>Implemente timeouts com time.After()</li>
+                    <li>Use default para operações não bloqueantes</li>
+                    <li>Combine select com context para cancelamento</li>
+                    <li>Use ticker para operações periódicas</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">Comportamentos Importantes</h3>
+                <ul class="list">
+                    <li>Se múltiplos cases estão prontos, select escolhe um aleatoriamente</li>
+                    <li>Select sem default bloqueia até que um case esteja pronto</li>
+                    <li>Select com default nunca bloqueia</li>
+                    <li>Select vazio (sem cases) bloqueia para sempre</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Select é fundamental para coordenação avançada de goroutines</p>
+            <p>Próximo tópico: Defer, Panic e Recover</p>
+        </footer>
+    </div>
+</body>
+</html>

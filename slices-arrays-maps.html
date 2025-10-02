@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrays, Slices e Maps em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword {
+            color: #f472b6;
+        }
+        
+        .function {
+            color: #a78bfa;
+        }
+        
+        .string {
+            color: #34d399;
+        }
+        
+        .comment {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .number {
+            color: #60a5fa;
+        }
+        
+        .type {
+            color: #fbbf24;
+        }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+        
+        .highlight-box.info {
+            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        
+        .highlight-box.success {
+            border-left-color: #34d399;
+            background: rgba(52, 211, 153, 0.05);
+        }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #b0b0b0;
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 25px;
+            }
+            
+            h2 {
+                font-size: 1.6rem;
+            }
+            
+            .code-block {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Arrays, Slices e Maps</h1>
+            <p class="subtitle">Estruturas de dados fundamentais em Go</p>
+            <div class="nav-links">
+                <a href="#arrays" class="nav-link">Arrays</a>
+                <a href="#slices" class="nav-link">Slices</a>
+                <a href="#maps" class="nav-link">Maps</a>
+                <a href="#pratico" class="nav-link">Exemplos Práticos</a>
+            </div>
+        </header>
+        
+        <section id="arrays" class="section">
+            <h2>Arrays</h2>
+            
+            <p>Arrays em Go têm tamanho fixo e fazem parte do tipo. Um array de 5 inteiros é diferente de um array de 10 inteiros.</p>
+            
+            <h3>Declaração de Arrays</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">arrays_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Declaração com tipo e tamanho</span>
+    <span class="keyword">var</span> numeros [<span class="number">5</span>]<span class="type">int</span>
+    fmt.<span class="function">Println</span>(numeros)  <span class="comment">// [0 0 0 0 0]</span>
+    
+    <span class="comment">// Declaração com inicialização</span>
+    frutas := [<span class="number">3</span>]<span class="type">string</span>{<span class="string">"maçã"</span>, <span class="string">"banana"</span>, <span class="string">"laranja"</span>}
+    fmt.<span class="function">Println</span>(frutas)
+    
+    <span class="comment">// Tamanho inferido com ...</span>
+    cores := [...]<span class="type">string</span>{<span class="string">"vermelho"</span>, <span class="string">"verde"</span>, <span class="string">"azul"</span>}
+    fmt.<span class="function">Println</span>(cores)
+    fmt.<span class="function">Println</span>(<span class="string">"Tamanho:"</span>, <span class="function">len</span>(cores))
+    
+    <span class="comment">// Acessando elementos</span>
+    fmt.<span class="function">Println</span>(<span class="string">"Primeira fruta:"</span>, frutas[<span class="number">0</span>])
+    
+    <span class="comment">// Modificando elementos</span>
+    frutas[<span class="number">1</span>] = <span class="string">"morango"</span>
+    fmt.<span class="function">Println</span>(frutas)
+}</code></pre>
+            </div>
+            
+            <h3>Iterando sobre Arrays</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">arrays_iteracao.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">main</span>() {
+    numeros := [<span class="number">5</span>]<span class="type">int</span>{<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>}
+    
+    <span class="comment">// For tradicional</span>
+    <span class="keyword">for</span> i := <span class="number">0</span>; i < <span class="function">len</span>(numeros); i++ {
+        fmt.<span class="function">Printf</span>(<span class="string">"numeros[%d] = %d\n"</span>, i, numeros[i])
+    }
+    
+    <span class="comment">// Range com índice e valor</span>
+    <span class="keyword">for</span> indice, valor := <span class="keyword">range</span> numeros {
+        fmt.<span class="function">Printf</span>(<span class="string">"Índice: %d, Valor: %d\n"</span>, indice, valor)
+    }
+    
+    <span class="comment">// Range apenas valores</span>
+    <span class="keyword">for</span> _, valor := <span class="keyword">range</span> numeros {
+        fmt.<span class="function">Println</span>(valor)
+    }
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Atenção:</strong> Arrays têm tamanho fixo e são passados por valor para funções, o que significa que uma cópia é criada. Para arrays grandes, isso pode ser ineficiente.
+            </div>
+        </section>
+        
+        <section id="slices" class="section">
+            <h2>Slices</h2>
+            
+            <p>Slices são a forma mais comum de trabalhar com sequências em Go. Eles são dinâmicos, flexíveis e mais eficientes que arrays.</p>
+            
+            <h3>Criando Slices</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">slices_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Slice literal</span>
+    numeros := []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>}
+    fmt.<span class="function">Println</span>(numeros)
+    
+    <span class="comment">// Criando slice vazio</span>
+    <span class="keyword">var</span> vazio []<span class="type">int</span>
+    fmt.<span class="function">Println</span>(vazio == <span class="keyword">nil</span>)  <span class="comment">// true</span>
+    
+    <span class="comment">// Usando make</span>
+    slice1 := <span class="function">make</span>([]<span class="type">int</span>, <span class="number">5</span>)        <span class="comment">// len=5, cap=5</span>
+    slice2 := <span class="function">make</span>([]<span class="type">int</span>, <span class="number">5</span>, <span class="number">10</span>)    <span class="comment">// len=5, cap=10</span>
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"slice1: len=%d cap=%d %v\n"</span>, <span class="function">len</span>(slice1), <span class="function">cap</span>(slice1), slice1)
+    fmt.<span class="function">Printf</span>(<span class="string">"slice2: len=%d cap=%d %v\n"</span>, <span class="function">len</span>(slice2), <span class="function">cap</span>(slice2), slice2)
+}</code></pre>
+            </div>
+            
+            <h3>Operações com Slices</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">slices_operacoes.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    numeros := []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>}
+    
+    <span class="comment">// Append - adiciona elementos</span>
+    numeros = <span class="function">append</span>(numeros, <span class="number">6</span>)
+    numeros = <span class="function">append</span>(numeros, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)
+    fmt.<span class="function">Println</span>(numeros)
+    
+    <span class="comment">// Append de outro slice</span>
+    mais := []<span class="type">int</span>{<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>}
+    numeros = <span class="function">append</span>(numeros, mais...)
+    fmt.<span class="function">Println</span>(numeros)
+    
+    <span class="comment">// Slicing - criar sub-slices</span>
+    parte := numeros[<span class="number">2</span>:<span class="number">5</span>]  <span class="comment">// elementos 2, 3, 4</span>
+    fmt.<span class="function">Println</span>(parte)
+    
+    inicio := numeros[:<span class="number">3</span>]     <span class="comment">// do início até 3 (exclusivo)</span>
+    fim := numeros[<span class="number">8</span>:]        <span class="comment">// de 8 até o final</span>
+    todos := numeros[:]        <span class="comment">// cópia de todos</span>
+    
+    fmt.<span class="function">Println</span>(inicio, fim, todos)
+}</code></pre>
+            </div>
+            
+            <h3>Copy de Slices</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">slices_copy.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">main</span>() {
+    original := []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>}
+    
+    <span class="comment">// Criar destino e copiar</span>
+    copia := <span class="function">make</span>([]<span class="type">int</span>, <span class="function">len</span>(original))
+    n := <span class="function">copy</span>(copia, original)
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Copiados %d elementos\n"</span>, n)
+    fmt.<span class="function">Println</span>(<span class="string">"Original:"</span>, original)
+    fmt.<span class="function">Println</span>(<span class="string">"Cópia:"</span>, copia)
+    
+    <span class="comment">// Modificar cópia não afeta original</span>
+    copia[<span class="number">0</span>] = <span class="number">999</span>
+    fmt.<span class="function">Println</span>(<span class="string">"Original:"</span>, original)
+    fmt.<span class="function">Println</span>(<span class="string">"Cópia:"</span>, copia)
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>Length vs Capacity:</strong> <code>len()</code> retorna o número de elementos no slice. <code>cap()</code> retorna a capacidade do array subjacente.
+            </div>
+            
+            <h3>Removendo Elementos</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">slices_remover.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">main</span>() {
+    numeros := []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>}
+    
+    <span class="comment">// Remover elemento no índice 2</span>
+    indice := <span class="number">2</span>
+    numeros = <span class="function">append</span>(numeros[:<span class="number">indice</span>], numeros[indice+<span class="number">1</span>:]...)
+    fmt.<span class="function">Println</span>(numeros)  <span class="comment">// [1 2 4 5]</span>
+    
+    <span class="comment">// Remover primeiro elemento</span>
+    valores := []<span class="type">int</span>{<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>}
+    valores = valores[<span class="number">1</span>:]
+    fmt.<span class="function">Println</span>(valores)  <span class="comment">// [20 30 40]</span>
+    
+    <span class="comment">// Remover último elemento</span>
+    valores = valores[:<span class="function">len</span>(valores)-<span class="number">1</span>]
+    fmt.<span class="function">Println</span>(valores)  <span class="comment">// [20 30]</span>
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="maps" class="section">
+            <h2>Maps</h2>
+            
+            <p>Maps são estruturas de dados chave-valor, semelhantes a dicionários ou hash tables em outras linguagens.</p>
+            
+            <h3>Criando Maps</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">maps_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Map literal</span>
+    idades := <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>{
+        <span class="string">"João"</span>:  <span class="number">25</span>,
+        <span class="string">"Maria"</span>: <span class="number">30</span>,
+        <span class="string">"Pedro"</span>: <span class="number">28</span>,
+    }
+    fmt.<span class="function">Println</span>(idades)
+    
+    <span class="comment">// Criando map vazio</span>
+    <span class="keyword">var</span> vazio <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>
+    fmt.<span class="function">Println</span>(vazio == <span class="keyword">nil</span>)  <span class="comment">// true</span>
+    
+    <span class="comment">// Usando make</span>
+    notas := <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">float64</span>)
+    notas[<span class="string">"Matemática"</span>] = <span class="number">8.5</span>
+    notas[<span class="string">"Português"</span>] = <span class="number">9.0</span>
+    fmt.<span class="function">Println</span>(notas)
+}</code></pre>
+            </div>
+            
+            <h3>Operações com Maps</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">maps_operacoes.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">main</span>() {
+    capitais := <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"Brasil"</span>:    <span class="string">"Brasília"</span>,
+        <span class="string">"Argentina"</span>: <span class="string">"Buenos Aires"</span>,
+        <span class="string">"Chile"</span>:     <span class="string">"Santiago"</span>,
+    }
+    
+    <span class="comment">// Acessando valores</span>
+    fmt.<span class="function">Println</span>(capitais[<span class="string">"Brasil"</span>])
+    
+    <span class="comment">// Adicionando/Modificando</span>
+    capitais[<span class="string">"Peru"</span>] = <span class="string">"Lima"</span>
+    capitais[<span class="string">"Brasil"</span>] = <span class="string">"Brasília - DF"</span>
+    
+    <span class="comment">// Verificar se chave existe</span>
+    valor, existe := capitais[<span class="string">"Colômbia"</span>]
+    <span class="keyword">if</span> existe {
+        fmt.<span class="function">Println</span>(<span class="string">"Capital:"</span>, valor)
+    } <span class="keyword">else</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"País não encontrado"</span>)
+    }
+    
+    <span class="comment">// Deletar elemento</span>
+    <span class="function">delete</span>(capitais, <span class="string">"Chile"</span>)
+    
+    <span class="comment">// Tamanho do map</span>
+    fmt.<span class="function">Printf</span>(<span class="string">"Total de países: %d\n"</span>, <span class="function">len</span>(capitais))
+}</code></pre>
+            </div>
+            
+            <h3>Iterando sobre Maps</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">maps_iteracao.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">main</span>() {
+    produtos := <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">float64</span>{
+        <span class="string">"Arroz"</span>:   <span class="number">5.99</span>,
+        <span class="string">"Feijão"</span>:  <span class="number">7.50</span>,
+        <span class="string">"Macarrão"</span>: <span class="number">3.99</span>,
+        <span class="string">"Açúcar"</span>:  <span class="number">4.50</span>,
+    }
+    
+    <span class="comment">// Iterar sobre chave e valor</span>
+    <span class="keyword">for</span> produto, preco := <span class="keyword">range</span> produtos {
+        fmt.<span class="function">Printf</span>(<span class="string">"%s: R$ %.2f\n"</span>, produto, preco)
+    }
+    
+    fmt.<span class="function">Println</span>()
+    
+    <span class="comment">// Apenas chaves</span>
+    <span class="keyword">for</span> produto := <span class="keyword">range</span> produtos {
+        fmt.<span class="function">Println</span>(produto)
+    }
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Importante:</strong> A ordem de iteração em maps é aleatória e não deve ser confiável. Se precisar de ordem, use um slice de chaves ordenadas.
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos Completos</h2>
+            
+            <h3>Sistema de Estoque</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">estoque.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Produto <span class="keyword">struct</span> {
+    Nome       <span class="type">string</span>
+    Quantidade <span class="type">int</span>
+    Preco      <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> <span class="function">adicionarProduto</span>(estoque *<span class="keyword">map</span>[<span class="type">string</span>]Produto, id <span class="type">string</span>, p Produto) {
+    (*estoque)[id] = p
+    fmt.<span class="function">Printf</span>(<span class="string">"Produto %s adicionado\n"</span>, p.Nome)
+}
+
+<span class="keyword">func</span> <span class="function">removerProduto</span>(estoque *<span class="keyword">map</span>[<span class="type">string</span>]Produto, id <span class="type">string</span>) {
+    <span class="keyword">if</span> p, existe := (*estoque)[id]; existe {
+        <span class="function">delete</span>(*estoque, id)
+        fmt.<span class="function">Printf</span>(<span class="string">"Produto %s removido\n"</span>, p.Nome)
+    } <span class="keyword">else</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Produto não encontrado"</span>)
+    }
+}
+
+<span class="keyword">func</span> <span class="function">listarEstoque</span>(estoque <span class="keyword">map</span>[<span class="type">string</span>]Produto) {
+    fmt.<span class="function">Println</span>(<span class="string">"\n=== ESTOQUE ==="</span>)
+    total := <span class="number">0.0</span>
+    
+    <span class="keyword">for</span> id, p := <span class="keyword">range</span> estoque {
+        valorTotal := <span class="type">float64</span>(p.Quantidade) * p.Preco
+        total += valorTotal
+        fmt.<span class="function">Printf</span>(<span class="string">"ID: %s | %s | Qtd: %d | R$ %.2f | Total: R$ %.2f\n"</span>,
+            id, p.Nome, p.Quantidade, p.Preco, valorTotal)
+    }
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Valor total em estoque: R$ %.2f\n"</span>, total)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    estoque := <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]Produto)
+    
+    <span class="function">adicionarProduto</span>(&estoque, <span class="string">"P001"</span>, Produto{<span class="string">"Mouse"</span>, <span class="number">50</span>, <span class="number">25.90</span>})
+    <span class="function">adicionarProduto</span>(&estoque, <span class="string">"P002"</span>, Produto{<span class="string">"Teclado"</span>, <span class="number">30</span>, <span class="number">89.90</span>})
+    <span class="function">adicionarProduto</span>(&estoque, <span class="string">"P003"</span>, Produto{<span class="string">"Monitor"</span>, <span class="number">15</span>, <span class="number">599.00</span>})
+    
+    <span class="function">listarEstoque</span>(estoque)
+    
+    <span class="function">removerProduto</span>(&estoque, <span class="string">"P002"</span>)
+    <span class="function">listarEstoque</span>(estoque)
+}</code></pre>
+            </div>
+            
+            <h3>Processamento de Dados</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">processamento.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"strings"</span>
+)
+
+<span class="comment">// Contar ocorrências de palavras</span>
+<span class="keyword">func</span> <span class="function">contarPalavras</span>(texto <span class="type">string</span>) <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span> {
+    palavras := strings.<span class="function">Fields</span>(strings.<span class="function">ToLower</span>(texto))
+    contador := <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)
+    
+    <span class="keyword">for</span> _, palavra := <span class="keyword">range</span> palavras {
+        contador[palavra]++
+    }
+    
+    <span class="keyword">return</span> contador
+}
+
+<span class="comment">// Filtrar números pares</span>
+<span class="keyword">func</span> <span class="function">filtrarPares</span>(numeros []<span class="type">int</span>) []<span class="type">int</span> {
+    pares := []<span class="type">int</span>{}
+    
+    <span class="keyword">for</span> _, num := <span class="keyword">range</span> numeros {
+        <span class="keyword">if</span> num%<span class="number">2</span> == <span class="number">0</span> {
+            pares = <span class="function">append</span>(pares, num)
+        }
+    }
+    
+    <span class="keyword">return</span> pares
+}
+
+<span class="comment">// Agrupar por categoria</span>
+<span class="keyword">func</span> <span class="function">agruparPorCategoria</span>(items []<span class="type">string</span>) <span class="keyword">map</span>[<span class="type">string</span>][]<span class="type">string</span> {
+    grupos := <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>][]<span class="type">string</span>)
+    
+    <span class="keyword">for</span> _, item := <span class="keyword">range</span> items {
+        primeira := <span class="type">string</span>(item[<span class="number">0</span>])
+        grupos[primeira] = <span class="function">append</span>(grupos[primeira], item)
+    }
+    
+    <span class="keyword">return</span> grupos
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Contar palavras</span>
+    texto := <span class="string">"Go é uma linguagem de programação. Go é eficiente e Go é simples"</span>
+    contagem := <span class="function">contarPalavras</span>(texto)
+    fmt.<span class="function">Println</span>(<span class="string">"Contagem de palavras:"</span>, contagem)
+    
+    <span class="comment">// Filtrar pares</span>
+    numeros := []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>}
+    pares := <span class="function">filtrarPares</span>(numeros)
+    fmt.<span class="function">Println</span>(<span class="string">"Números pares:"</span>, pares)
+    
+    <span class="comment">// Agrupar por letra inicial</span>
+    frutas := []<span class="type">string</span>{<span class="string">"Maçã"</span>, <span class="string">"Banana"</span>, <span class="string">"Morango"</span>, <span class="string">"Abacaxi"</span>, <span class="string">"Melancia"</span>}
+    grupos := <span class="function">agruparPorCategoria</span>(frutas)
+    fmt.<span class="function">Println</span>(<span class="string">"Agrupamento:"</span>, grupos)
+}</code></pre>
+            </div>
+            
+            <h3>Sistema de Cache</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">cache.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Cache <span class="keyword">struct</span> {
+    dados <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">interface</span>{}
+}
+
+<span class="keyword">func</span> <span class="function">NovoCache</span>() *Cache {
+    <span class="keyword">return</span> &Cache{
+        dados: <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">interface</span>{}),
+    }
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Set</span>(chave <span class="type">string</span>, valor <span class="type">interface</span>{}) {
+    c.dados[chave] = valor
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Get</span>(chave <span class="type">string</span>) (<span class="type">interface</span>{}, <span class="type">bool</span>) {
+    valor, existe := c.dados[chave]
+    <span class="keyword">return</span> valor, existe
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Delete</span>(chave <span class="type">string</span>) {
+    <span class="function">delete</span>(c.dados, chave)
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Clear</span>() {
+    c.dados = <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">interface</span>{})
+}
+
+<span class="keyword">func</span> (c *Cache) <span class="function">Size</span>() <span class="type">int</span> {
+    <span class="keyword">return</span> <span class="function">len</span>(c.dados)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    cache := <span class="function">NovoCache</span>()
+    
+    <span class="comment">// Armazenar dados</span>
+    cache.<span class="function">Set</span>(<span class="string">"user:1"</span>, <span class="string">"João Silva"</span>)
+    cache.<span class="function">Set</span>(<span class="string">"user:2"</span>, <span class="string">"Maria Santos"</span>)
+    cache.<span class="function">Set</span>(<span class="string">"count"</span>, <span class="number">42</span>)
+    
+    <span class="comment">// Recuperar dados</span>
+    <span class="keyword">if</span> valor, existe := cache.<span class="function">Get</span>(<span class="string">"user:1"</span>); existe {
+        fmt.<span class="function">Println</span>(<span class="string">"Usuário:"</span>, valor)
+    }
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Tamanho do cache: %d\n"</span>, cache.<span class="function">Size</span>())
+    
+    cache.<span class="function">Delete</span>(<span class="string">"user:2"</span>)
+    fmt.<span class="function">Printf</span>(<span class="string">"Tamanho após delete: %d\n"</span>, cache.<span class="function">Size</span>())
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Comparação: Array vs Slice vs Map</h2>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Característica</th>
+                            <th>Array</th>
+                            <th>Slice</th>
+                            <th>Map</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Tamanho</strong></td>
+                            <td>Fixo</td>
+                            <td>Dinâmico</td>
+                            <td>Dinâmico</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tipo</strong></td>
+                            <td>Parte do tipo</td>
+                            <td>Referência</td>
+                            <td>Referência</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Valor Zero</strong></td>
+                            <td>Array preenchido</td>
+                            <td>nil</td>
+                            <td>nil</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Passagem</strong></td>
+                            <td>Por valor (cópia)</td>
+                            <td>Por referência</td>
+                            <td>Por referência</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Acesso</strong></td>
+                            <td>Por índice</td>
+                            <td>Por índice</td>
+                            <td>Por chave</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ordem</strong></td>
+                            <td>Garantida</td>
+                            <td>Garantida</td>
+                            <td>Não garantida</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Resumo e Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas - Arrays</h3>
+                <ul class="list">
+                    <li>Use arrays quando o tamanho é fixo e conhecido</li>
+                    <li>Arrays são úteis quando você precisa de performance máxima</li>
+                    <li>Prefira slices para a maioria dos casos</li>
+                    <li>Arrays são comparáveis com ==</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas - Slices</h3>
+                <ul class="list">
+                    <li>Use make() com capacidade quando souber o tamanho aproximado</li>
+                    <li>Sempre verifique se slice é nil antes de usar</li>
+                    <li>Use copy() para fazer cópias independentes</li>
+                    <li>Lembre que slices compartilham o array subjacente</li>
+                    <li>Use append() para adicionar elementos</li>
+                    <li>Prefira range para iterar sobre slices</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas - Maps</h3>
+                <ul class="list">
+                    <li>Sempre verifique se uma chave existe antes de usar</li>
+                    <li>Use make() para inicializar maps antes de usar</li>
+                    <li>Maps não são thread-safe, use sync.Map se necessário</li>
+                    <li>Não confie na ordem de iteração</li>
+                    <li>Use delete() para remover elementos</li>
+                    <li>Maps não são comparáveis com ==</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">⚠️ Erros Comuns</h3>
+                <ul class="list">
+                    <li>Modificar slice durante iteração com range</li>
+                    <li>Esquecer que range copia valores, não referências</li>
+                    <li>Não inicializar maps antes de usar (panic!)</li>
+                    <li>Confiar na ordem de iteração de maps</li>
+                    <li>Não verificar se chave existe em map</li>
+                    <li>Usar append() sem atribuir o resultado</li>
+                    <li>Index out of range em slices vazios</li>
+                    <li>Memory leak ao não limpar slices grandes</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">💡 Dicas de Performance</h3>
+                <ul class="list">
+                    <li>Pré-alocar slices quando souber o tamanho: <code>make([]int, 0, tamanho)</code></li>
+                    <li>Use copy() ao invés de slicing quando precisar de independência</li>
+                    <li>Maps com muitas inserções/remoções podem fragmentar</li>
+                    <li>Para pequenas coleções (&lt;10 items), slice pode ser mais rápido que map</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exercícios Práticos</h2>
+            
+            <div class="highlight-box">
+                <h3 style="margin-bottom: 15px;">🎯 Desafios</h3>
+                
+                <p><strong>1. Inverter Slice</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que inverte um slice de inteiros sem criar um novo slice.</p>
+                
+                <p><strong>2. Remover Duplicatas</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que remove elementos duplicados de um slice, mantendo apenas a primeira ocorrência.</p>
+                
+                <p><strong>3. Intersecção de Slices</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que retorna a intersecção de dois slices (elementos que aparecem em ambos).</p>
+                
+                <p><strong>4. Agenda de Contatos</strong></p>
+                <p style="margin-bottom: 15px;">Crie um sistema de agenda usando map que permita adicionar, buscar, atualizar e remover contatos (nome, telefone, email).</p>
+                
+                <p><strong>5. Análise de Frequência</strong></p>
+                <p style="margin-bottom: 15px;">Dada uma string, retorne um map com a frequência de cada caractere.</p>
+                
+                <p><strong>6. Merge de Maps</strong></p>
+                <p style="margin-bottom: 15px;">Crie uma função que combina dois maps, onde valores do segundo map sobrescrevem os do primeiro em caso de chaves duplicadas.</p>
+                
+                <p><strong>7. Matriz com Slices</strong></p>
+                <p style="margin-bottom: 15px;">Implemente operações em uma matriz usando slice de slices: soma de elementos, transposta, multiplicação por escalar.</p>
+                
+                <p><strong>8. Sistema de Tags</strong></p>
+                <p>Crie um sistema onde itens podem ter múltiplas tags. Use map[string][]string para mapear cada item às suas tags.</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>📚 Continue praticando e explore a documentação oficial do Go em <strong>go.dev</strong></p>
+            <p>💡 Próximo tópico: Structs e Métodos</p>
+        </footer>
+    </div>
+</body>
+</html>

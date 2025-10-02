@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packages e Organização de Código em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .tree {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 25px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 2;
+            color: #c9d1d9;
+            overflow-x: auto;
+        }
+        
+        .tree-line {
+            display: block;
+            white-space: pre;
+        }
+        
+        .tree-folder {
+            color: #58a6ff;
+            font-weight: 500;
+        }
+        
+        .tree-file {
+            color: #8b949e;
+        }
+        
+        .tree-icon {
+            color: #6e7681;
+            margin-right: 4px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Packages e Organização</h1>
+            <p class="subtitle">Estruturando Projetos Go de Forma Profissional</p>
+            <div class="nav-links">
+                <a href="#conceito" class="nav-link">Conceito</a>
+                <a href="#estrutura" class="nav-link">Estrutura</a>
+                <a href="#visibilidade" class="nav-link">Visibilidade</a>
+                <a href="#pratico" class="nav-link">Exemplos</a>
+            </div>
+        </header>
+        
+        <section id="conceito" class="section">
+            <h2>O que são Packages?</h2>
+            
+            <p>Packages são a forma como Go organiza e reutiliza código. Todo código Go pertence a um package.</p>
+            
+            <div class="highlight-box info">
+                <strong>Regra Fundamental:</strong> Cada diretório contém exatamente um package. Todos os arquivos .go em um diretório devem declarar o mesmo package.
+            </div>
+            
+            <h3>Package Main</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">main.go</span>
+                </div>
+                <pre><code><span class="comment">// Package main é especial - define um programa executável</span>
+<span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// func main() é o ponto de entrada</span>
+<span class="keyword">func</span> <span class="function">main</span>() {
+    fmt.<span class="function">Println</span>(<span class="string">"Hello, World!"</span>)
+}</code></pre>
+            </div>
+            
+            <h3>Package Customizado</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">utils/math.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> utils
+
+<span class="comment">// Função exportada (maiúscula)</span>
+<span class="keyword">func</span> <span class="function">Add</span>(a, b <span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">return</span> a + b
+}
+
+<span class="comment">// Função não exportada (minúscula)</span>
+<span class="keyword">func</span> <span class="function">multiply</span>(a, b <span class="type">int</span>) <span class="type">int</span> {
+    <span class="keyword">return</span> a * b
+}</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">main.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"meuapp/utils"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    resultado := utils.<span class="function">Add</span>(<span class="number">5</span>, <span class="number">3</span>)
+    fmt.<span class="function">Println</span>(resultado)
+    
+    <span class="comment">// utils.multiply() - ERRO! Não é exportada</span>
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="estrutura" class="section">
+            <h2>Estruturas de Projeto</h2>
+            
+            <h3>Projeto Simples</h3>
+            
+            <div class="tree">
+<span class="tree-line"><span class="tree-folder">myapp/</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">go.mod</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">main.go</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">utils/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-file">math.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-file">string.go</span></span>
+<span class="tree-line"><span class="tree-icon">└──</span> <span class="tree-folder">models/</span></span>
+<span class="tree-line">    <span class="tree-icon">└──</span> <span class="tree-file">user.go</span></span>
+            </div>
+            
+            <h3>Projeto Médio</h3>
+            
+            <div class="tree">
+<span class="tree-line"><span class="tree-folder">myapp/</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">go.mod</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">go.sum</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">main.go</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">cmd/</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-folder">server/</span></span>
+<span class="tree-line"><span class="tree-icon">│       └──</span> <span class="tree-file">main.go</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">internal/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">handlers/</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   ├──</span> <span class="tree-file">user.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   └──</span> <span class="tree-file">product.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">models/</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   ├──</span> <span class="tree-file">user.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   └──</span> <span class="tree-file">product.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-folder">database/</span></span>
+<span class="tree-line"><span class="tree-icon">│       └──</span> <span class="tree-file">db.go</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">pkg/</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-folder">validator/</span></span>
+<span class="tree-line"><span class="tree-icon">│       └──</span> <span class="tree-file">validator.go</span></span>
+<span class="tree-line"><span class="tree-icon">└──</span> <span class="tree-folder">config/</span></span>
+<span class="tree-line">    <span class="tree-icon">└──</span> <span class="tree-file">config.go</span></span>
+            </div>
+            
+            <h3>Projeto Grande (Standard Layout)</h3>
+            
+            <div class="tree">
+<span class="tree-line"><span class="tree-folder">myapp/</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">go.mod</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">go.sum</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">README.md</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">Makefile</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-file">.gitignore</span></span>
+<span class="tree-line"><span class="tree-icon">│</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">cmd/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">api/</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   └──</span> <span class="tree-file">main.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-folder">worker/</span></span>
+<span class="tree-line"><span class="tree-icon">│       └──</span> <span class="tree-file">main.go</span></span>
+<span class="tree-line"><span class="tree-icon">│</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">internal/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">api/</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   ├──</span> <span class="tree-folder">handlers/</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   ├──</span> <span class="tree-folder">middleware/</span></span>
+<span class="tree-line"><span class="tree-icon">│   │   └──</span> <span class="tree-file">routes.go</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">models/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">repository/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">service/</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-folder">config/</span></span>
+<span class="tree-line"><span class="tree-icon">│</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">pkg/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">logger/</span></span>
+<span class="tree-line"><span class="tree-icon">│   ├──</span> <span class="tree-folder">validator/</span></span>
+<span class="tree-line"><span class="tree-icon">│   └──</span> <span class="tree-folder">httputil/</span></span>
+<span class="tree-line"><span class="tree-icon">│</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">migrations/</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">docs/</span></span>
+<span class="tree-line"><span class="tree-icon">├──</span> <span class="tree-folder">scripts/</span></span>
+<span class="tree-line"><span class="tree-icon">└──</span> <span class="tree-folder">tests/</span></span>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">Convenções de Diretórios</h3>
+                <ul class="list">
+                    <li><strong>cmd/:</strong> Aplicações principais (cada subdiretório é um executável)</li>
+                    <li><strong>internal/:</strong> Código privado que não pode ser importado por outros projetos</li>
+                    <li><strong>pkg/:</strong> Código que pode ser importado por projetos externos</li>
+                    <li><strong>api/:</strong> Definições de API (OpenAPI/Swagger, Protocol Buffers)</li>
+                    <li><strong>web/:</strong> Assets web (HTML, CSS, JS)</li>
+                    <li><strong>configs/:</strong> Arquivos de configuração</li>
+                    <li><strong>scripts/:</strong> Scripts de build, deploy, etc</li>
+                    <li><strong>tests/:</strong> Testes adicionais e dados de teste</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="visibilidade" class="section">
+            <h2>Visibilidade e Exportação</h2>
+            
+            <p>Go usa capitalização para controlar visibilidade. Não há palavras-chave como public/private.</p>
+            
+            <h3>Regra Simples</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">visibility.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> mypackage
+
+<span class="comment">// Exportado (Público) - Primeira letra MAIÚSCULA</span>
+<span class="keyword">type</span> User <span class="keyword">struct</span> {
+    Name  <span class="type">string</span>  <span class="comment">// Exportado</span>
+    Email <span class="type">string</span>  <span class="comment">// Exportado</span>
+    age   <span class="type">int</span>     <span class="comment">// NÃO exportado (privado)</span>
+}
+
+<span class="comment">// Exportada</span>
+<span class="keyword">func</span> <span class="function">NewUser</span>(name, email <span class="type">string</span>) *User {
+    <span class="keyword">return</span> &User{
+        Name:  name,
+        Email: email,
+        age:   <span class="number">0</span>,
+    }
+}
+
+<span class="comment">// Exportado</span>
+<span class="keyword">func</span> (u *User) <span class="function">GetAge</span>() <span class="type">int</span> {
+    <span class="keyword">return</span> u.age
+}
+
+<span class="comment">// NÃO exportado (privado)</span>
+<span class="keyword">func</span> (u *User) <span class="function">validate</span>() <span class="type">bool</span> {
+    <span class="keyword">return</span> u.Name != <span class="string">""</span> && u.Email != <span class="string">""</span>
+}
+
+<span class="comment">// Constantes</span>
+<span class="keyword">const</span> MaxUsers = <span class="number">1000</span>    <span class="comment">// Exportada</span>
+<span class="keyword">const</span> minAge = <span class="number">18</span>        <span class="comment">// Privada</span>
+
+<span class="comment">// Variáveis</span>
+<span class="keyword">var</span> DefaultTimeout = <span class="number">30</span>  <span class="comment">// Exportada</span>
+<span class="keyword">var</span> cache = <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{})  <span class="comment">// Privada</span></code></pre>
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Projeto API Completo</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">cmd/api/main.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"log"</span>
+    <span class="string">"myapp/internal/api"</span>
+    <span class="string">"myapp/internal/config"</span>
+    <span class="string">"myapp/internal/database"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Carregar configuração</span>
+    cfg := config.<span class="function">Load</span>()
+    
+    <span class="comment">// Conectar banco de dados</span>
+    db, err := database.<span class="function">Connect</span>(cfg.DatabaseURL)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        log.<span class="function">Fatal</span>(err)
+    }
+    <span class="keyword">defer</span> db.<span class="function">Close</span>()
+    
+    <span class="comment">// Iniciar servidor</span>
+    server := api.<span class="function">NewServer</span>(db, cfg)
+    log.<span class="function">Fatal</span>(server.<span class="function">Start</span>())
+}</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">internal/config/config.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> config
+
+<span class="keyword">import</span> <span class="string">"os"</span>
+
+<span class="keyword">type</span> Config <span class="keyword">struct</span> {
+    Port        <span class="type">string</span>
+    DatabaseURL <span class="type">string</span>
+    JWTSecret   <span class="type">string</span>
+}
+
+<span class="keyword">func</span> <span class="function">Load</span>() *Config {
+    <span class="keyword">return</span> &Config{
+        Port:        <span class="function">getEnv</span>(<span class="string">"PORT"</span>, <span class="string">"8080"</span>),
+        DatabaseURL: <span class="function">getEnv</span>(<span class="string">"DATABASE_URL"</span>, <span class="string">"localhost:5432"</span>),
+        JWTSecret:   <span class="function">getEnv</span>(<span class="string">"JWT_SECRET"</span>, <span class="string">"secret"</span>),
+    }
+}
+
+<span class="keyword">func</span> <span class="function">getEnv</span>(key, defaultValue <span class="type">string</span>) <span class="type">string</span> {
+    <span class="keyword">if</span> value := os.<span class="function">Getenv</span>(key); value != <span class="string">""</span> {
+        <span class="keyword">return</span> value
+    }
+    <span class="keyword">return</span> defaultValue
+}</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">internal/models/user.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> models
+
+<span class="keyword">import</span> <span class="string">"time"</span>
+
+<span class="keyword">type</span> User <span class="keyword">struct</span> {
+    ID        <span class="type">int</span>       `json:"id"`
+    Name      <span class="type">string</span>    `json:"name"`
+    Email     <span class="type">string</span>    `json:"email"`
+    CreatedAt time.Time `json:"created_at"`
+}
+
+<span class="keyword">type</span> UserRepository <span class="keyword">interface</span> {
+    <span class="function">Create</span>(user *User) <span class="type">error</span>
+    <span class="function">FindByID</span>(id <span class="type">int</span>) (*User, <span class="type">error</span>)
+    <span class="function">FindByEmail</span>(email <span class="type">string</span>) (*User, <span class="type">error</span>)
+    <span class="function">Update</span>(user *User) <span class="type">error</span>
+    <span class="function">Delete</span>(id <span class="type">int</span>) <span class="type">error</span>
+}</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">internal/repository/user_repository.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> repository
+
+<span class="keyword">import</span> (
+    <span class="string">"database/sql"</span>
+    <span class="string">"myapp/internal/models"</span>
+)
+
+<span class="keyword">type</span> userRepository <span class="keyword">struct</span> {
+    db *sql.DB
+}
+
+<span class="keyword">func</span> <span class="function">NewUserRepository</span>(db *sql.DB) models.UserRepository {
+    <span class="keyword">return</span> &userRepository{db: db}
+}
+
+<span class="keyword">func</span> (r *userRepository) <span class="function">Create</span>(user *models.User) <span class="type">error</span> {
+    query := <span class="string">`INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id`</span>
+    <span class="keyword">return</span> r.db.<span class="function">QueryRow</span>(query, user.Name, user.Email).<span class="function">Scan</span>(&user.ID)
+}
+
+<span class="keyword">func</span> (r *userRepository) <span class="function">FindByID</span>(id <span class="type">int</span>) (*models.User, <span class="type">error</span>) {
+    <span class="keyword">var</span> user models.User
+    query := <span class="string">`SELECT id, name, email, created_at FROM users WHERE id = $1`</span>
+    err := r.db.<span class="function">QueryRow</span>(query, id).<span class="function">Scan</span>(&user.ID, &user.Name, &user.Email, &user.CreatedAt)
+    <span class="keyword">return</span> &user, err
+}</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">internal/api/handlers/user_handler.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> handlers
+
+<span class="keyword">import</span> (
+    <span class="string">"encoding/json"</span>
+    <span class="string">"net/http"</span>
+    <span class="string">"myapp/internal/models"</span>
+)
+
+<span class="keyword">type</span> UserHandler <span class="keyword">struct</span> {
+    repo models.UserRepository
+}
+
+<span class="keyword">func</span> <span class="function">NewUserHandler</span>(repo models.UserRepository) *UserHandler {
+    <span class="keyword">return</span> &UserHandler{repo: repo}
+}
+
+<span class="keyword">func</span> (h *UserHandler) <span class="function">Create</span>(w http.ResponseWriter, r *http.Request) {
+    <span class="keyword">var</span> user models.User
+    <span class="keyword">if</span> err := json.<span class="function">NewDecoder</span>(r.Body).<span class="function">Decode</span>(&user); err != <span class="keyword">nil</span> {
+        http.<span class="function">Error</span>(w, err.<span class="function">Error</span>(), http.StatusBadRequest)
+        <span class="keyword">return</span>
+    }
+    
+    <span class="keyword">if</span> err := h.repo.<span class="function">Create</span>(&user); err != <span class="keyword">nil</span> {
+        http.<span class="function">Error</span>(w, err.<span class="function">Error</span>(), http.StatusInternalServerError)
+        <span class="keyword">return</span>
+    }
+    
+    w.<span class="function">Header</span>().<span class="function">Set</span>(<span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>)
+    json.<span class="function">NewEncoder</span>(w).<span class="function">Encode</span>(user)
+}</code></pre>
+            </div>
+            
+            <h3>2. Go Modules</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">Inicializando um módulo</span>
+                </div>
+                <pre><code><span class="comment"># Criar novo módulo</span>
+go mod init github.com/username/myapp
+
+<span class="comment"># Adicionar dependências</span>
+go get github.com/gofiber/fiber/v2
+
+<span class="comment"># Atualizar go.mod e go.sum</span>
+go mod tidy
+
+<span class="comment"># Remover dependências não usadas</span>
+go mod tidy
+
+<span class="comment"># Baixar todas as dependências</span>
+go mod download</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">go.mod</span>
+                </div>
+                <pre><code>module github.com/username/myapp
+
+go 1.21
+
+require (
+    github.com/gofiber/fiber/v2 v2.50.0
+    github.com/lib/pq v1.10.9
+)
+
+require (
+    github.com/andybalholm/brotli v1.0.5 // indirect
+    github.com/klauspost/compress v1.16.7 // indirect
+)</code></pre>
+            </div>
+            
+            <h3>3. Internal Package</h3>
+            
+            <div class="highlight-box warning">
+                <strong>Importante:</strong> O diretório <code>internal/</code> é especial. Código dentro de internal/ só pode ser importado por código no mesmo módulo/projeto.
+            </div>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">Estrutura com internal</span>
+                </div>
+                <pre><code><span class="comment"># Esta estrutura:</span>
+myapp/
+├── internal/
+│   └── auth/
+│       └── jwt.go
+└── main.go
+
+<span class="comment"># Permite:</span>
+<span class="keyword">import</span> <span class="string">"myapp/internal/auth"</span>  <span class="comment">// OK dentro de myapp</span>
+
+<span class="comment"># Mas NÃO permite em outro projeto:</span>
+<span class="keyword">import</span> <span class="string">"github.com/user/myapp/internal/auth"</span>  <span class="comment">// ERRO!</span></code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Init Functions</h2>
+            
+            <p>A função <code>init()</code> é executada automaticamente antes de main().</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">init_example.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">var</span> config <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>
+
+<span class="comment">// init é chamado automaticamente</span>
+<span class="keyword">func</span> <span class="function">init</span>() {
+    fmt.<span class="function">Println</span>(<span class="string">"Inicializando..."</span>)
+    config = <span class="function">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>)
+    config[<span class="string">"app"</span>] = <span class="string">"MyApp"</span>
+}
+
+<span class="comment">// Pode ter múltiplas funções init</span>
+<span class="keyword">func</span> <span class="function">init</span>() {
+    fmt.<span class="function">Println</span>(<span class="string">"Segunda init"</span>)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    fmt.<span class="function">Println</span>(<span class="string">"Main executando"</span>)
+    fmt.<span class="function">Println</span>(config[<span class="string">"app"</span>])
+}
+
+<span class="comment">// Ordem de execução:</span>
+<span class="comment">// 1. Variáveis de pacote</span>
+<span class="comment">// 2. init() functions (em ordem de declaração)</span>
+<span class="comment">// 3. main()</span></code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Imports e Aliases</h2>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">imports.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="comment">// Import padrão</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"net/http"</span>
+    
+    <span class="comment">// Import com alias</span>
+    f <span class="string">"github.com/gofiber/fiber/v2"</span>
+    
+    <span class="comment">// Import apenas para side effects (init)</span>
+    _ <span class="string">"github.com/lib/pq"</span>
+    
+    <span class="comment">// Dot import (evite usar!)</span>
+    . <span class="string">"math"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    app := f.<span class="function">New</span>()  <span class="comment">// Usando alias</span>
+    
+    <span class="comment">// Com dot import, pode usar diretamente</span>
+    result := <span class="function">Sqrt</span>(<span class="number">16</span>)  <span class="comment">// ao invés de math.Sqrt()</span>
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Organização de Código</h3>
+                <ul class="list">
+                    <li>Um package por diretório</li>
+                    <li>Nomes de package em minúsculas, sem underscores</li>
+                    <li>Package name deve ser curto e descritivo</li>
+                    <li>Evite nomes genéricos como "util", "common", "base"</li>
+                    <li>Organize por funcionalidade, não por tipo</li>
+                    <li>Use internal/ para código que não deve ser importado externamente</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">Estrutura de Arquivos</h3>
+                <ul class="list">
+                    <li>Agrupe código relacionado no mesmo package</li>
+                    <li>Separe lógica de negócio, persistência e apresentação</li>
+                    <li>Use sufixos descritivos: user_handler.go, user_repository.go</li>
+                    <li>Arquivo de testes: nome_test.go no mesmo diretório</li>
+                    <li>Mantenha arquivos pequenos e focados</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">Evite</h3>
+                <ul class="list">
+                    <li>Packages circulares (A importa B, B importa A)</li>
+                    <li>Dot imports (exceto em testes)</li>
+                    <li>Packages muito grandes com muita responsabilidade</li>
+                    <li>Exports desnecessários (mantenha privado quando possível)</li>
+                    <li>Nomes de package que conflitam com stdlib</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Resumo de Comandos</h2>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">Comandos úteis</span>
+                </div>
+                <pre><code><span class="comment"># Criar novo módulo</span>
+go mod init github.com/username/project
+
+<span class="comment"># Adicionar dependência</span>
+go get package@version
+
+<span class="comment"># Atualizar dependências</span>
+go get -u ./...
+
+<span class="comment"># Limpar módulo</span>
+go mod tidy
+
+<span class="comment"># Verificar dependências</span>
+go mod why package
+
+<span class="comment"># Ver grafo de dependências</span>
+go mod graph
+
+<span class="comment"># Compilar</span>
+go build
+
+<span class="comment"># Executar</span>
+go run main.go
+
+<span class="comment"># Instalar binário</span>
+go install
+
+<span class="comment"># Formatar código</span>
+go fmt ./...
+
+<span class="comment"># Verificar erros</span>
+go vet ./...</code></pre>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Organização adequada torna projetos escaláveis e manuteníveis</p>
+            <p>Parabéns! Você completou a Semana 2 do Roadmap Go</p>
+        </footer>
+    </div>
+</body>
+</html>

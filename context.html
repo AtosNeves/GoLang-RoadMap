@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .back-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #666 0%, #999 100%);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #777 0%, #aaa 100%);
+        }
+        
+        .back-button::before {
+            content: '←';
+            font-size: 1.2rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+            .back-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Context</h1>
+            <p class="subtitle">Controle de Requisições e Cancelamento</p>
+        </header>
+        
+        <section class="section">
+            <h2>O que é Context?</h2>
+            
+            <p>O package <code>context</code> é usado para controlar cancelamento, timeouts e propagação de valores através de chamadas de API e goroutines.</p>
+            
+            <div class="highlight-box info">
+                <strong>Casos de Uso Principais:</strong>
+                <ul class="list">
+                    <li>Cancelar operações quando não são mais necessárias</li>
+                    <li>Definir timeouts para operações</li>
+                    <li>Passar valores específicos da requisição (como IDs de trace)</li>
+                </ul>
+            </div>
+            
+            <h3>Context Básico</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">context_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">operacao</span>(ctx context.Context, nome <span class="type">string</span>) {
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">2</span> * time.Second):
+        fmt.<span class="function">Printf</span>(<span class="string">"%s concluída\n"</span>, nome)
+    <span class="keyword">case</span> <-ctx.<span class="function">Done</span>():
+        fmt.<span class="function">Printf</span>(<span class="string">"%s cancelada: %v\n"</span>, nome, ctx.<span class="function">Err</span>())
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Context com cancelamento manual</span>
+    ctx, cancel := context.<span class="function">WithCancel</span>(context.<span class="function">Background</span>())
+    
+    <span class="keyword">go</span> <span class="function">operacao</span>(ctx, <span class="string">"Operação 1"</span>)
+    
+    time.<span class="function">Sleep</span>(<span class="number">1</span> * time.Second)
+    <span class="function">cancel</span>() <span class="comment">// Cancela a operação</span>
+    
+    time.<span class="function">Sleep</span>(<span class="number">2</span> * time.Second)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Tipos de Context</h2>
+            
+            <h3>1. WithTimeout</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">with_timeout.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">buscarDados</span>(ctx context.Context) (<span class="type">string</span>, <span class="type">error</span>) {
+    <span class="comment">// Simula operação demorada</span>
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">3</span> * time.Second):
+        <span class="keyword">return</span> <span class="string">"Dados recuperados"</span>, <span class="keyword">nil</span>
+    <span class="keyword">case</span> <-ctx.<span class="function">Done</span>():
+        <span class="keyword">return</span> <span class="string">""</span>, ctx.<span class="function">Err</span>()
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Timeout de 2 segundos</span>
+    ctx, cancel := context.<span class="function">WithTimeout</span>(context.<span class="function">Background</span>(), <span class="number">2</span>*time.Second)
+    <span class="keyword">defer</span> <span class="function">cancel</span>()
+    
+    dados, err := <span class="function">buscarDados</span>(ctx)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro:"</span>, err) <span class="comment">// context deadline exceeded</span>
+        <span class="keyword">return</span>
+    }
+    
+    fmt.<span class="function">Println</span>(dados)
+}</code></pre>
+            </div>
+            
+            <h3>2. WithDeadline</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">with_deadline.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Deadline específico</span>
+    deadline := time.<span class="function">Now</span>().<span class="function">Add</span>(<span class="number">2</span> * time.Second)
+    ctx, cancel := context.<span class="function">WithDeadline</span>(context.<span class="function">Background</span>(), deadline)
+    <span class="keyword">defer</span> <span class="function">cancel</span>()
+    
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> <-time.<span class="function">After</span>(<span class="number">3</span> * time.Second):
+        fmt.<span class="function">Println</span>(<span class="string">"Operação concluída"</span>)
+    <span class="keyword">case</span> <-ctx.<span class="function">Done</span>():
+        fmt.<span class="function">Println</span>(<span class="string">"Deadline atingido:"</span>, ctx.<span class="function">Err</span>())
+    }
+}</code></pre>
+            </div>
+            
+            <h3>3. WithValue</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">with_value.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+)
+
+<span class="keyword">type</span> contextKey <span class="type">string</span>
+
+<span class="keyword">const</span> (
+    userIDKey    contextKey = <span class="string">"userID"</span>
+    requestIDKey contextKey = <span class="string">"requestID"</span>
+)
+
+<span class="keyword">func</span> <span class="function">processarRequisicao</span>(ctx context.Context) {
+    userID := ctx.<span class="function">Value</span>(userIDKey).(<span class="type">string</span>)
+    requestID := ctx.<span class="function">Value</span>(requestIDKey).(<span class="type">string</span>)
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Processando - UserID: %s, RequestID: %s\n"</span>, userID, requestID)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ctx := context.<span class="function">Background</span>()
+    ctx = context.<span class="function">WithValue</span>(ctx, userIDKey, <span class="string">"user-123"</span>)
+    ctx = context.<span class="function">WithValue</span>(ctx, requestIDKey, <span class="string">"req-456"</span>)
+    
+    <span class="function">processarRequisicao</span>(ctx)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exemplos Práticos</h2>
+            
+            <h3>1. Requisição HTTP com Context</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">http_context.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"io"</span>
+    <span class="string">"net/http"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">fazerRequisicao</span>(ctx context.Context, url <span class="type">string</span>) (<span class="type">string</span>, <span class="type">error</span>) {
+    req, err := http.<span class="function">NewRequestWithContext</span>(ctx, <span class="string">"GET"</span>, url, <span class="keyword">nil</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> <span class="string">""</span>, err
+    }
+    
+    client := &http.Client{}
+    resp, err := client.<span class="function">Do</span>(req)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> <span class="string">""</span>, err
+    }
+    <span class="keyword">defer</span> resp.Body.<span class="function">Close</span>()
+    
+    body, err := io.<span class="function">ReadAll</span>(resp.Body)
+    <span class="keyword">return</span> <span class="type">string</span>(body), err
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ctx, cancel := context.<span class="function">WithTimeout</span>(context.<span class="function">Background</span>(), <span class="number">5</span>*time.Second)
+    <span class="keyword">defer</span> <span class="function">cancel</span>()
+    
+    dados, err := <span class="function">fazerRequisicao</span>(ctx, <span class="string">"https://api.example.com/data"</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro:"</span>, err)
+        <span class="keyword">return</span>
+    }
+    
+    fmt.<span class="function">Println</span>(<span class="string">"Dados:"</span>, dados)
+}</code></pre>
+            </div>
+            
+            <h3>2. Worker Pool com Context</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">worker_pool_context.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"context"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"sync"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">func</span> <span class="function">worker</span>(ctx context.Context, id <span class="type">int</span>, jobs <-<span class="keyword">chan</span> <span class="type">int</span>, wg *sync.WaitGroup) {
+    <span class="keyword">defer</span> wg.<span class="function">Done</span>()
+    
+    <span class="keyword">for</span> {
+        <span class="keyword">select</span> {
+        <span class="keyword">case</span> job, ok := <-jobs:
+            <span class="keyword">if</span> !ok {
+                <span class="keyword">return</span>
+            }
+            fmt.<span class="function">Printf</span>(<span class="string">"Worker %d processando job %d\n"</span>, id, job)
+            time.<span class="function">Sleep</span>(<span class="number">500</span> * time.Millisecond)
+        <span class="keyword">case</span> <-ctx.<span class="function">Done</span>():
+            fmt.<span class="function">Printf</span>(<span class="string">"Worker %d cancelado\n"</span>, id)
+            <span class="keyword">return</span>
+        }
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ctx, cancel := context.<span class="function">WithTimeout</span>(context.<span class="function">Background</span>(), <span class="number">3</span>*time.Second)
+    <span class="keyword">defer</span> <span class="function">cancel</span>()
+    
+    jobs := <span class="function">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">10</span>)
+    <span class="keyword">var</span> wg sync.WaitGroup
+    
+    <span class="comment">// Inicia workers</span>
+    <span class="keyword">for</span> w := <span class="number">1</span>; w <= <span class="number">3</span>; w++ {
+        wg.<span class="function">Add</span>(<span class="number">1</span>)
+        <span class="keyword">go</span> <span class="function">worker</span>(ctx, w, jobs, &wg)
+    }
+    
+    <span class="comment">// Envia jobs</span>
+    <span class="keyword">for</span> j := <span class="number">1</span>; j <= <span class="number">10</span>; j++ {
+        jobs <- j
+    }
+    <span class="function">close</span>(jobs)
+    
+    wg.<span class="function">Wait</span>()
+    fmt.<span class="function">Println</span>(<span class="string">"Todos workers finalizados"</span>)
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Faça</h3>
+                <ul class="list">
+                    <li>Sempre chame cancel() usando defer após criar um context</li>
+                    <li>Passe context como primeiro parâmetro das funções</li>
+                    <li>Use context.Background() no ponto de entrada da aplicação</li>
+                    <li>Use context.TODO() quando não tiver certeza qual context usar</li>
+                    <li>Respeite o cancelamento em operações de longa duração</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">Não Faça</h3>
+                <ul class="list">
+                    <li>Não armazene context em structs</li>
+                    <li>Não use context.Value para passar parâmetros obrigatórios</li>
+                    <li>Não ignore context.Done() em loops ou operações demoradas</li>
+                    <li>Não crie contexts desnecessários em operações rápidas</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Context é essencial para controlar o ciclo de vida de operações em Go</p>
+        </footer>
+    </div>
+    
+    <a href="Roadmap.html" class="back-button">Voltar ao Roadmap</a>
+</body>
+</html>

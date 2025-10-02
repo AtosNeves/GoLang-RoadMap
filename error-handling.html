@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword { color: #f472b6; }
+        .function { color: #a78bfa; }
+        .string { color: #34d399; }
+        .comment { color: #6b7280; font-style: italic; }
+        .number { color: #60a5fa; }
+        .type { color: #fbbf24; }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+        .highlight-box.info { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .highlight-box.success { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        .highlight-box.danger { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section { padding: 25px; }
+            h2 { font-size: 1.6rem; }
+            .code-block { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Error Handling em Go</h1>
+            <p class="subtitle">O Padrão Idiomático de Go para Tratamento de Erros</p>
+            <div class="nav-links">
+                <a href="#conceito" class="nav-link">Conceito</a>
+                <a href="#criando" class="nav-link">Criando Erros</a>
+                <a href="#wrapping" class="nav-link">Wrapping</a>
+                <a href="#custom" class="nav-link">Erros Customizados</a>
+            </div>
+        </header>
+        
+        <section id="conceito" class="section">
+            <h2>O Padrão de Error em Go</h2>
+            
+            <p>Go não usa exceções (try/catch). Em vez disso, funções que podem falhar retornam um valor de erro como último parâmetro de retorno.</p>
+            
+            <div class="highlight-box info">
+                <strong>Filosofia Go:</strong> Erros são valores. Eles devem ser tratados explicitamente, tornando o fluxo de controle claro e previsível.
+            </div>
+            
+            <h3>O Padrão Básico</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">padrao_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"os"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Padrão idiomático: verificar erro imediatamente</span>
+    arquivo, err := os.<span class="function">Open</span>(<span class="string">"dados.txt"</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro ao abrir arquivo:"</span>, err)
+        <span class="keyword">return</span>
+    }
+    <span class="keyword">defer</span> arquivo.<span class="function">Close</span>()
+    
+    <span class="comment">// Continua se não houver erro</span>
+    fmt.<span class="function">Println</span>(<span class="string">"Arquivo aberto com sucesso"</span>)
+}</code></pre>
+            </div>
+            
+            <h3>Interface Error</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">interface_error.go</span>
+                </div>
+                <pre><code><span class="comment">// A interface error é simples:</span>
+<span class="keyword">type</span> error <span class="keyword">interface</span> {
+    <span class="function">Error</span>() <span class="type">string</span>
+}
+
+<span class="comment">// Qualquer tipo com método Error() string implementa error</span></code></pre>
+            </div>
+        </section>
+        
+        <section id="criando" class="section">
+            <h2>Criando Erros</h2>
+            
+            <h3>1. errors.New()</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">errors_new.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"errors"</span>
+    <span class="string">"fmt"</span>
+)
+
+<span class="keyword">func</span> <span class="function">dividir</span>(a, b <span class="type">float64</span>) (<span class="type">float64</span>, <span class="type">error</span>) {
+    <span class="keyword">if</span> b == <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="number">0</span>, errors.<span class="function">New</span>(<span class="string">"divisão por zero"</span>)
+    }
+    <span class="keyword">return</span> a / b, <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    resultado, err := <span class="function">dividir</span>(<span class="number">10</span>, <span class="number">2</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro:"</span>, err)
+        <span class="keyword">return</span>
+    }
+    fmt.<span class="function">Println</span>(<span class="string">"Resultado:"</span>, resultado)
+    
+    _, err = <span class="function">dividir</span>(<span class="number">10</span>, <span class="number">0</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro:"</span>, err)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>2. fmt.Errorf()</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">fmt_errorf.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">func</span> <span class="function">buscarUsuario</span>(id <span class="type">int</span>) (<span class="type">string</span>, <span class="type">error</span>) {
+    <span class="keyword">if</span> id <= <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="string">""</span>, fmt.<span class="function">Errorf</span>(<span class="string">"ID inválido: %d"</span>, id)
+    }
+    
+    <span class="comment">// Simula busca</span>
+    <span class="keyword">if</span> id > <span class="number">100</span> {
+        <span class="keyword">return</span> <span class="string">""</span>, fmt.<span class="function">Errorf</span>(<span class="string">"usuário %d não encontrado"</span>, id)
+    }
+    
+    <span class="keyword">return</span> fmt.<span class="function">Sprintf</span>(<span class="string">"Usuário %d"</span>, id), <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    usuario, err := <span class="function">buscarUsuario</span>(-<span class="number">5</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(err)
+    } <span class="keyword">else</span> {
+        fmt.<span class="function">Println</span>(usuario)
+    }
+    
+    usuario, err = <span class="function">buscarUsuario</span>(<span class="number">200</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(err)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>3. Erros Predefinidos</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">erros_predefinidos.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"errors"</span>
+    <span class="string">"fmt"</span>
+)
+
+<span class="comment">// Definir erros como variáveis de pacote</span>
+<span class="keyword">var</span> (
+    ErrNaoEncontrado = errors.<span class="function">New</span>(<span class="string">"recurso não encontrado"</span>)
+    ErrNaoAutorizado = errors.<span class="function">New</span>(<span class="string">"acesso não autorizado"</span>)
+    ErrDadosInvalidos = errors.<span class="function">New</span>(<span class="string">"dados inválidos"</span>)
+)
+
+<span class="keyword">func</span> <span class="function">obterDados</span>(id <span class="type">int</span>, autorizado <span class="type">bool</span>) (<span class="type">string</span>, <span class="type">error</span>) {
+    <span class="keyword">if</span> !autorizado {
+        <span class="keyword">return</span> <span class="string">""</span>, ErrNaoAutorizado
+    }
+    
+    <span class="keyword">if</span> id <= <span class="number">0</span> {
+        <span class="keyword">return</span> <span class="string">""</span>, ErrDadosInvalidos
+    }
+    
+    <span class="keyword">if</span> id > <span class="number">100</span> {
+        <span class="keyword">return</span> <span class="string">""</span>, ErrNaoEncontrado
+    }
+    
+    <span class="keyword">return</span> <span class="string">"Dados do recurso"</span>, <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    _, err := <span class="function">obterDados</span>(<span class="number">50</span>, <span class="keyword">false</span>)
+    <span class="keyword">if</span> err == ErrNaoAutorizado {
+        fmt.<span class="function">Println</span>(<span class="string">"Usuário não tem permissão"</span>)
+    }
+    
+    _, err = <span class="function">obterDados</span>(<span class="number">200</span>, <span class="keyword">true</span>)
+    <span class="keyword">if</span> err == ErrNaoEncontrado {
+        fmt.<span class="function">Println</span>(<span class="string">"Recurso não existe"</span>)
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="wrapping" class="section">
+            <h2>Error Wrapping (Go 1.13+)</h2>
+            
+            <p>Wrapping permite adicionar contexto a erros sem perder a informação original.</p>
+            
+            <h3>Usando %w com fmt.Errorf</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">error_wrapping.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"errors"</span>
+    <span class="string">"fmt"</span>
+)
+
+<span class="keyword">func</span> <span class="function">lerArquivo</span>(nome <span class="type">string</span>) <span class="type">error</span> {
+    <span class="comment">// Simula erro</span>
+    <span class="keyword">return</span> errors.<span class="function">New</span>(<span class="string">"arquivo não encontrado"</span>)
+}
+
+<span class="keyword">func</span> <span class="function">processarDados</span>(arquivo <span class="type">string</span>) <span class="type">error</span> {
+    err := <span class="function">lerArquivo</span>(arquivo)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        <span class="comment">// %w envolve o erro original</span>
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"erro ao processar %s: %w"</span>, arquivo, err)
+    }
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">executarTarefa</span>() <span class="type">error</span> {
+    err := <span class="function">processarDados</span>(<span class="string">"dados.txt"</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"falha na tarefa: %w"</span>, err)
+    }
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    err := <span class="function">executarTarefa</span>()
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro completo:"</span>, err)
+        <span class="comment">// Saída: falha na tarefa: erro ao processar dados.txt: arquivo não encontrado</span>
+    }
+}</code></pre>
+            </div>
+            
+            <h3>errors.Is() e errors.As()</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">errors_is_as.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"errors"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"os"</span>
+)
+
+<span class="keyword">var</span> ErrPermissao = errors.<span class="function">New</span>(<span class="string">"sem permissão"</span>)
+
+<span class="keyword">func</span> <span class="function">operacao</span>() <span class="type">error</span> {
+    <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"falha na operação: %w"</span>, ErrPermissao)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    err := <span class="function">operacao</span>()
+    
+    <span class="comment">// errors.Is verifica se o erro é ou envolve um erro específico</span>
+    <span class="keyword">if</span> errors.<span class="function">Is</span>(err, ErrPermissao) {
+        fmt.<span class="function">Println</span>(<span class="string">"Problema de permissão detectado"</span>)
+    }
+    
+    <span class="comment">// errors.As extrai o tipo de erro</span>
+    <span class="keyword">var</span> pathErr *os.PathError
+    <span class="keyword">if</span> errors.<span class="function">As</span>(err, &pathErr) {
+        fmt.<span class="function">Printf</span>(<span class="string">"Erro de caminho: %s\n"</span>, pathErr.Path)
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="custom" class="section">
+            <h2>Erros Customizados</h2>
+            
+            <h3>Implementando a Interface Error</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">erro_customizado.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> ErroValidacao <span class="keyword">struct</span> {
+    Campo   <span class="type">string</span>
+    Valor   <span class="keyword">interface</span>{}
+    Mensagem <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (e *ErroValidacao) <span class="function">Error</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> fmt.<span class="function">Sprintf</span>(<span class="string">"validação falhou no campo '%s': %s (valor: %v)"</span>,
+        e.Campo, e.Mensagem, e.Valor)
+}
+
+<span class="keyword">func</span> <span class="function">validarIdade</span>(idade <span class="type">int</span>) <span class="type">error</span> {
+    <span class="keyword">if</span> idade < <span class="number">0</span> {
+        <span class="keyword">return</span> &ErroValidacao{
+            Campo:    <span class="string">"idade"</span>,
+            Valor:    idade,
+            Mensagem: <span class="string">"não pode ser negativa"</span>,
+        }
+    }
+    <span class="keyword">if</span> idade > <span class="number">150</span> {
+        <span class="keyword">return</span> &ErroValidacao{
+            Campo:    <span class="string">"idade"</span>,
+            Valor:    idade,
+            Mensagem: <span class="string">"valor irreal"</span>,
+        }
+    }
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="keyword">if</span> err := <span class="function">validarIdade</span>(-<span class="number">5</span>); err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(err)
+        
+        <span class="comment">// Type assertion para acessar campos específicos</span>
+        <span class="keyword">if</span> ve, ok := err.(*ErroValidacao); ok {
+            fmt.<span class="function">Printf</span>(<span class="string">"Campo com erro: %s\n"</span>, ve.Campo)
+        }
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Erro com Múltiplas Informações</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">erro_detalhado.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">type</span> ErroHTTP <span class="keyword">struct</span> {
+    StatusCode <span class="type">int</span>
+    Mensagem   <span class="type">string</span>
+    Timestamp  time.Time
+    URL        <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (e *ErroHTTP) <span class="function">Error</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> fmt.<span class="function">Sprintf</span>(<span class="string">"[%s] HTTP %d: %s (URL: %s)"</span>,
+        e.Timestamp.<span class="function">Format</span>(<span class="string">"15:04:05"</span>), e.StatusCode, e.Mensagem, e.URL)
+}
+
+<span class="keyword">func</span> (e *ErroHTTP) <span class="function">EhClienteErro</span>() <span class="type">bool</span> {
+    <span class="keyword">return</span> e.StatusCode >= <span class="number">400</span> && e.StatusCode < <span class="number">500</span>
+}
+
+<span class="keyword">func</span> (e *ErroHTTP) <span class="function">EhServidorErro</span>() <span class="type">bool</span> {
+    <span class="keyword">return</span> e.StatusCode >= <span class="number">500</span>
+}
+
+<span class="keyword">func</span> <span class="function">fazerRequisicao</span>(url <span class="type">string</span>) <span class="type">error</span> {
+    <span class="comment">// Simula erro 404</span>
+    <span class="keyword">return</span> &ErroHTTP{
+        StatusCode: <span class="number">404</span>,
+        Mensagem:   <span class="string">"Página não encontrada"</span>,
+        Timestamp:  time.<span class="function">Now</span>(),
+        URL:        url,
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    err := <span class="function">fazerRequisicao</span>(<span class="string">"https://api.example.com/users"</span>)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(err)
+        
+        <span class="keyword">if</span> httpErr, ok := err.(*ErroHTTP); ok {
+            <span class="keyword">if</span> httpErr.<span class="function">EhClienteErro</span>() {
+                fmt.<span class="function">Println</span>(<span class="string">"Erro no lado do cliente"</span>)
+            }
+        }
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Padrões de Error Handling</h2>
+            
+            <h3>1. Early Return</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">early_return.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">processar</span>(dados <span class="type">string</span>) <span class="type">error</span> {
+    <span class="keyword">if</span> dados == <span class="string">""</span> {
+        <span class="keyword">return</span> errors.<span class="function">New</span>(<span class="string">"dados vazios"</span>)
+    }
+    
+    resultado, err := <span class="function">validar</span>(dados)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"validação falhou: %w"</span>, err)
+    }
+    
+    err = <span class="function">salvar</span>(resultado)
+    <span class="keyword">if</span> err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"erro ao salvar: %w"</span>, err)
+    }
+    
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}</code></pre>
+            </div>
+            
+            <h3>2. Tratamento Centralizado</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">tratamento_centralizado.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"errors"</span>
+    <span class="string">"fmt"</span>
+    <span class="string">"log"</span>
+)
+
+<span class="keyword">func</span> <span class="function">tratarErro</span>(err <span class="type">error</span>) {
+    <span class="keyword">if</span> err == <span class="keyword">nil</span> {
+        <span class="keyword">return</span>
+    }
+    
+    <span class="keyword">switch</span> {
+    <span class="keyword">case</span> errors.<span class="function">Is</span>(err, ErrNaoEncontrado):
+        log.<span class="function">Println</span>(<span class="string">"Recurso não encontrado"</span>)
+    <span class="keyword">case</span> errors.<span class="function">Is</span>(err, ErrNaoAutorizado):
+        log.<span class="function">Println</span>(<span class="string">"Acesso negado"</span>)
+    <span class="keyword">default</span>:
+        log.<span class="function">Printf</span>(<span class="string">"Erro inesperado: %v\n"</span>, err)
+    }
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    err := <span class="function">obterDados</span>(<span class="number">200</span>, <span class="keyword">true</span>)
+    <span class="function">tratarErro</span>(err)
+}</code></pre>
+            </div>
+            
+            <h3>3. Logging de Erros</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">logging_erros.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"log"</span>
+    <span class="string">"os"</span>
+)
+
+<span class="keyword">func</span> <span class="function">processarComLog</span>(id <span class="type">int</span>) <span class="type">error</span> {
+    log.<span class="function">Printf</span>(<span class="string">"Iniciando processamento do ID: %d"</span>, id)
+    
+    <span class="keyword">if</span> id <= <span class="number">0</span> {
+        err := fmt.<span class="function">Errorf</span>(<span class="string">"ID inválido: %d"</span>, id)
+        log.<span class="function">Printf</span>(<span class="string">"ERRO: %v"</span>, err)
+        <span class="keyword">return</span> err
+    }
+    
+    log.<span class="function">Printf</span>(<span class="string">"Processamento concluído para ID: %d"</span>, id)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Configurar log</span>
+    log.<span class="function">SetOutput</span>(os.Stdout)
+    log.<span class="function">SetPrefix</span>(<span class="string">"APP: "</span>)
+    log.<span class="function">SetFlags</span>(log.Ldate | log.Ltime | log.Lshortfile)
+    
+    <span class="keyword">if</span> err := <span class="function">processarComLog</span>(<span class="number">10</span>); err != <span class="keyword">nil</span> {
+        os.<span class="function">Exit</span>(<span class="number">1</span>)
+    }
+    
+    <span class="keyword">if</span> err := <span class="function">processarComLog</span>(-<span class="number">5</span>); err != <span class="keyword">nil</span> {
+        os.<span class="function">Exit</span>(<span class="number">1</span>)
+    }
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">Do (Faça)</h3>
+                <ul class="list">
+                    <li>Sempre verifique erros imediatamente após a chamada</li>
+                    <li>Retorne erros em vez de usar panic para fluxo normal</li>
+                    <li>Use fmt.Errorf com %w para adicionar contexto</li>
+                    <li>Defina erros sentinela como variáveis de pacote</li>
+                    <li>Crie tipos de erro customizados quando precisar de informações extras</li>
+                    <li>Use errors.Is() e errors.As() para verificar erros wrapped</li>
+                    <li>Documente quais erros suas funções podem retornar</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box danger">
+                <h3 style="margin-bottom: 15px;">Don't (Não Faça)</h3>
+                <ul class="list">
+                    <li>Não ignore erros com _ (underscore) sem bom motivo</li>
+                    <li>Não use panic para controle de fluxo normal</li>
+                    <li>Não retorne nil, err ao mesmo tempo (retorne valor zero)</li>
+                    <li>Não compare erros com == se eles podem ser wrapped</li>
+                    <li>Não crie strings de erro dinâmicas (use variáveis)</li>
+                    <li>Não exponha detalhes internos nas mensagens de erro</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">Quando Usar Cada Abordagem</h3>
+                <ul class="list">
+                    <li><strong>errors.New():</strong> Mensagens de erro simples e estáticas</li>
+                    <li><strong>fmt.Errorf():</strong> Quando precisa formatar ou adicionar contexto</li>
+                    <li><strong>Erros Customizados:</strong> Quando precisa de dados estruturados</li>
+                    <li><strong>Wrapping (%w):</strong> Para manter contexto através de camadas</li>
+                    <li><strong>Erros Sentinela:</strong> Para erros que precisam ser verificados</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Error handling explícito é uma das características que tornam Go seguro e previsível</p>
+            <p>Próximo tópico: Goroutines e Concorrência Básica</p>
+        </footer>
+    </div>
+</body>
+</html>

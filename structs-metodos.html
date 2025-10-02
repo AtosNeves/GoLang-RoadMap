@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structs e Métodos em Go</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            line-height: 1.7;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 300;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 32px;
+            background: linear-gradient(180deg, #666 0%, #999 100%);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: #ddd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-title {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+        }
+        
+        pre {
+            margin: 0;
+        }
+        
+        .keyword {
+            color: #f472b6;
+        }
+        
+        .function {
+            color: #a78bfa;
+        }
+        
+        .string {
+            color: #34d399;
+        }
+        
+        .comment {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .number {
+            color: #60a5fa;
+        }
+        
+        .type {
+            color: #fbbf24;
+        }
+        
+        .highlight-box {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #666;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box.warning {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+        
+        .highlight-box.info {
+            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        
+        .highlight-box.success {
+            border-left-color: #34d399;
+            background: rgba(52, 211, 153, 0.05);
+        }
+        
+        .list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #b0b0b0;
+        }
+        
+        .list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #666;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #b0b0b0;
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 25px;
+            }
+            
+            h2 {
+                font-size: 1.6rem;
+            }
+            
+            .code-block {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Structs e Métodos</h1>
+            <p class="subtitle">Programação Orientada a Objetos em Go</p>
+            <div class="nav-links">
+                <a href="#structs" class="nav-link">Structs</a>
+                <a href="#metodos" class="nav-link">Métodos</a>
+                <a href="#embedded" class="nav-link">Embedded Structs</a>
+                <a href="#pratico" class="nav-link">Exemplos Práticos</a>
+            </div>
+        </header>
+        
+        <section id="structs" class="section">
+            <h2>Structs</h2>
+            
+            <p>Structs são tipos de dados compostos que agrupam campos relacionados. São a principal forma de criar tipos personalizados em Go.</p>
+            
+            <h3>Declaração Básica</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">structs_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="comment">// Definindo uma struct</span>
+<span class="keyword">type</span> Pessoa <span class="keyword">struct</span> {
+    Nome  <span class="type">string</span>
+    Idade <span class="type">int</span>
+    Email <span class="type">string</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Criando instância com valores</span>
+    p1 := Pessoa{
+        Nome:  <span class="string">"João Silva"</span>,
+        Idade: <span class="number">25</span>,
+        Email: <span class="string">"joao@email.com"</span>,
+    }
+    
+    <span class="comment">// Criando com ordem dos campos</span>
+    p2 := Pessoa{<span class="string">"Maria Santos"</span>, <span class="number">30</span>, <span class="string">"maria@email.com"</span>}
+    
+    <span class="comment">// Struct vazia (valores zero)</span>
+    <span class="keyword">var</span> p3 Pessoa
+    
+    <span class="comment">// Acessando campos</span>
+    fmt.<span class="function">Println</span>(p1.Nome)
+    fmt.<span class="function">Println</span>(p2.Idade)
+    
+    <span class="comment">// Modificando campos</span>
+    p3.Nome = <span class="string">"Pedro Costa"</span>
+    p3.Idade = <span class="number">28</span>
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"%+v\n"</span>, p1)  <span class="comment">// Imprime com nomes dos campos</span>
+}</code></pre>
+            </div>
+            
+            <h3>Structs Anônimas</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">structs_anonimas.go</span>
+                </div>
+                <pre><code><span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Struct anônima</span>
+    pessoa := <span class="keyword">struct</span> {
+        Nome  <span class="type">string</span>
+        Idade <span class="type">int</span>
+    }{
+        Nome:  <span class="string">"Ana"</span>,
+        Idade: <span class="number">22</span>,
+    }
+    
+    fmt.<span class="function">Println</span>(pessoa.Nome)
+    
+    <span class="comment">// Slice de structs anônimas</span>
+    usuarios := []<span class="keyword">struct</span> {
+        ID   <span class="type">int</span>
+        Nome <span class="type">string</span>
+    }{
+        {<span class="number">1</span>, <span class="string">"João"</span>},
+        {<span class="number">2</span>, <span class="string">"Maria"</span>},
+        {<span class="number">3</span>, <span class="string">"Pedro"</span>},
+    }
+    
+    <span class="keyword">for</span> _, u := <span class="keyword">range</span> usuarios {
+        fmt.<span class="function">Printf</span>(<span class="string">"ID: %d, Nome: %s\n"</span>, u.ID, u.Nome)
+    }
+}</code></pre>
+            </div>
+            
+            <h3>Ponteiros para Structs</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">structs_ponteiros.go</span>
+                </div>
+                <pre><code><span class="keyword">type</span> Conta <span class="keyword">struct</span> {
+    Numero <span class="type">int</span>
+    Saldo  <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    <span class="comment">// Ponteiro para struct</span>
+    c1 := &Conta{
+        Numero: <span class="number">123</span>,
+        Saldo:  <span class="number">1000.00</span>,
+    }
+    
+    <span class="comment">// Go permite acessar campos sem desreferenciar</span>
+    fmt.<span class="function">Println</span>(c1.Saldo)  <span class="comment">// ao invés de (*c1).Saldo</span>
+    
+    <span class="comment">// Modificando através do ponteiro</span>
+    c1.Saldo += <span class="number">500</span>
+    fmt.<span class="function">Println</span>(c1.Saldo)
+    
+    <span class="comment">// Usando new</span>
+    c2 := <span class="function">new</span>(Conta)
+    c2.Numero = <span class="number">456</span>
+    c2.Saldo = <span class="number">2000.00</span>
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box info">
+                <strong>Dica:</strong> Go automaticamente desreferencia ponteiros ao acessar campos de struct, tornando o código mais limpo.
+            </div>
+        </section>
+        
+        <section id="metodos" class="section">
+            <h2>Métodos</h2>
+            
+            <p>Métodos são funções associadas a tipos específicos. Em Go, você pode definir métodos para qualquer tipo que você declare no mesmo pacote.</p>
+            
+            <h3>Métodos com Receiver</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">metodos_basico.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Retangulo <span class="keyword">struct</span> {
+    Largura <span class="type">float64</span>
+    Altura  <span class="type">float64</span>
+}
+
+<span class="comment">// Método com value receiver</span>
+<span class="keyword">func</span> (r Retangulo) <span class="function">Area</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> r.Largura * r.Altura
+}
+
+<span class="comment">// Método com value receiver</span>
+<span class="keyword">func</span> (r Retangulo) <span class="function">Perimetro</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> <span class="number">2</span> * (r.Largura + r.Altura)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    ret := Retangulo{
+        Largura: <span class="number">10</span>,
+        Altura:  <span class="number">5</span>,
+    }
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"Área: %.2f\n"</span>, ret.<span class="function">Area</span>())
+    fmt.<span class="function">Printf</span>(<span class="string">"Perímetro: %.2f\n"</span>, ret.<span class="function">Perimetro</span>())
+}</code></pre>
+            </div>
+            
+            <h3>Value Receiver vs Pointer Receiver</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">receivers.go</span>
+                </div>
+                <pre><code><span class="keyword">type</span> Contador <span class="keyword">struct</span> {
+    Valor <span class="type">int</span>
+}
+
+<span class="comment">// Value receiver - NÃO modifica o original</span>
+<span class="keyword">func</span> (c Contador) <span class="function">IncrementarErrado</span>() {
+    c.Valor++  <span class="comment">// Modifica apenas a cópia</span>
+}
+
+<span class="comment">// Pointer receiver - MODIFICA o original</span>
+<span class="keyword">func</span> (c *Contador) <span class="function">Incrementar</span>() {
+    c.Valor++  <span class="comment">// Modifica o original</span>
+}
+
+<span class="comment">// Pointer receiver</span>
+<span class="keyword">func</span> (c *Contador) <span class="function">Decrementar</span>() {
+    c.Valor--
+}
+
+<span class="comment">// Value receiver - apenas leitura</span>
+<span class="keyword">func</span> (c Contador) <span class="function">ObterValor</span>() <span class="type">int</span> {
+    <span class="keyword">return</span> c.Valor
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    c := Contador{Valor: <span class="number">0</span>}
+    
+    c.<span class="function">IncrementarErrado</span>()
+    fmt.<span class="function">Println</span>(c.Valor)  <span class="comment">// 0 (não mudou)</span>
+    
+    c.<span class="function">Incrementar</span>()
+    fmt.<span class="function">Println</span>(c.Valor)  <span class="comment">// 1</span>
+    
+    c.<span class="function">Incrementar</span>()
+    c.<span class="function">Incrementar</span>()
+    fmt.<span class="function">Println</span>(c.<span class="function">ObterValor</span>())  <span class="comment">// 3</span>
+}</code></pre>
+            </div>
+            
+            <div class="highlight-box warning">
+                <strong>Regra Importante:</strong> Use pointer receiver quando precisar modificar o receiver ou quando a struct for grande (para evitar cópias). Use value receiver para tipos pequenos e imutáveis.
+            </div>
+            
+            <h3>Métodos em Tipos Customizados</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">metodos_tipos.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"strings"</span>
+)
+
+<span class="comment">// Tipo customizado baseado em string</span>
+<span class="keyword">type</span> Texto <span class="type">string</span>
+
+<span class="comment">// Métodos para o tipo Texto</span>
+<span class="keyword">func</span> (t Texto) <span class="function">Maiuscula</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> strings.<span class="function">ToUpper</span>(<span class="type">string</span>(t))
+}
+
+<span class="keyword">func</span> (t Texto) <span class="function">Minuscula</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> strings.<span class="function">ToLower</span>(<span class="type">string</span>(t))
+}
+
+<span class="keyword">func</span> (t Texto) <span class="function">Tamanho</span>() <span class="type">int</span> {
+    <span class="keyword">return</span> <span class="function">len</span>(t)
+}
+
+<span class="comment">// Tipo customizado baseado em int</span>
+<span class="keyword">type</span> Temperatura <span class="type">float64</span>
+
+<span class="keyword">func</span> (t Temperatura) <span class="function">ParaFahrenheit</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> (<span class="type">float64</span>(t) * <span class="number">9</span> / <span class="number">5</span>) + <span class="number">32</span>
+}
+
+<span class="keyword">func</span> (t Temperatura) <span class="function">ParaKelvin</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> <span class="type">float64</span>(t) + <span class="number">273.15</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    txt := Texto(<span class="string">"Olá, Mundo!"</span>)
+    fmt.<span class="function">Println</span>(txt.<span class="function">Maiuscula</span>())
+    fmt.<span class="function">Println</span>(txt.<span class="function">Minuscula</span>())
+    fmt.<span class="function">Println</span>(txt.<span class="function">Tamanho</span>())
+    
+    temp := Temperatura(<span class="number">25.0</span>)
+    fmt.<span class="function">Printf</span>(<span class="string">"%.2f°C = %.2f°F\n"</span>, temp, temp.<span class="function">ParaFahrenheit</span>())
+    fmt.<span class="function">Printf</span>(<span class="string">"%.2f°C = %.2fK\n"</span>, temp, temp.<span class="function">ParaKelvin</span>())
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="embedded" class="section">
+            <h2>Embedded Structs (Composição)</h2>
+            
+            <p>Go não tem herança, mas usa composição através de embedded structs para reutilizar código.</p>
+            
+            <h3>Embedding Básico</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">embedding.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Endereco <span class="keyword">struct</span> {
+    Rua    <span class="type">string</span>
+    Numero <span class="type">int</span>
+    Cidade <span class="type">string</span>
+    Estado <span class="type">string</span>
+}
+
+<span class="keyword">type</span> Pessoa <span class="keyword">struct</span> {
+    Nome  <span class="type">string</span>
+    Idade <span class="type">int</span>
+    Endereco  <span class="comment">// Embedded struct</span>
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    p := Pessoa{
+        Nome:  <span class="string">"João Silva"</span>,
+        Idade: <span class="number">30</span>,
+        Endereco: Endereco{
+            Rua:    <span class="string">"Av. Principal"</span>,
+            Numero: <span class="number">123</span>,
+            Cidade: <span class="string">"São Paulo"</span>,
+            Estado: <span class="string">"SP"</span>,
+        },
+    }
+    
+    <span class="comment">// Acesso direto aos campos do embedded struct</span>
+    fmt.<span class="function">Println</span>(p.Rua)     <span class="comment">// Av. Principal</span>
+    fmt.<span class="function">Println</span>(p.Cidade)  <span class="comment">// São Paulo</span>
+    
+    <span class="comment">// Ou acesso explícito</span>
+    fmt.<span class="function">Println</span>(p.Endereco.Estado)  <span class="comment">// SP</span>
+}</code></pre>
+            </div>
+            
+            <h3>Métodos em Embedded Structs</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">embedding_metodos.go</span>
+                </div>
+                <pre><code><span class="keyword">type</span> Animal <span class="keyword">struct</span> {
+    Nome <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (a Animal) <span class="function">Respirar</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"%s está respirando\n"</span>, a.Nome)
+}
+
+<span class="keyword">type</span> Cachorro <span class="keyword">struct</span> {
+    Animal  <span class="comment">// Embedding</span>
+    Raca <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (c Cachorro) <span class="function">Latir</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"%s está latindo: Au au!\n"</span>, c.Nome)
+}
+
+<span class="keyword">type</span> Gato <span class="keyword">struct</span> {
+    Animal
+    Cor <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (g Gato) <span class="function">Miar</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"%s está miando: Miau!\n"</span>, g.Nome)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    dog := Cachorro{
+        Animal: Animal{Nome: <span class="string">"Rex"</span>},
+        Raca:   <span class="string">"Labrador"</span>,
+    }
+    
+    cat := Gato{
+        Animal: Animal{Nome: <span class="string">"Mimi"</span>},
+        Cor:    <span class="string">"Branco"</span>,
+    }
+    
+    <span class="comment">// Métodos do embedded struct</span>
+    dog.<span class="function">Respirar</span>()
+    cat.<span class="function">Respirar</span>()
+    
+    <span class="comment">// Métodos próprios</span>
+    dog.<span class="function">Latir</span>()
+    cat.<span class="function">Miar</span>()
+}</code></pre>
+            </div>
+        </section>
+        
+        <section id="pratico" class="section">
+            <h2>Exemplos Práticos Completos</h2>
+            
+            <h3>Sistema Bancário</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">banco.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"fmt"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">type</span> ContaBancaria <span class="keyword">struct</span> {
+    Numero      <span class="type">string</span>
+    Titular     <span class="type">string</span>
+    Saldo       <span class="type">float64</span>
+    DataCriacao time.Time
+}
+
+<span class="keyword">func</span> <span class="function">NovaConta</span>(numero, titular <span class="type">string</span>, saldoInicial <span class="type">float64</span>) *ContaBancaria {
+    <span class="keyword">return</span> &ContaBancaria{
+        Numero:      numero,
+        Titular:     titular,
+        Saldo:       saldoInicial,
+        DataCriacao: time.<span class="function">Now</span>(),
+    }
+}
+
+<span class="keyword">func</span> (c *ContaBancaria) <span class="function">Depositar</span>(valor <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="keyword">if</span> valor <= <span class="number">0</span> {
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"valor deve ser positivo"</span>)
+    }
+    c.Saldo += valor
+    fmt.<span class="function">Printf</span>(<span class="string">"Depósito de R$ %.2f realizado\n"</span>, valor)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> (c *ContaBancaria) <span class="function">Sacar</span>(valor <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="keyword">if</span> valor <= <span class="number">0</span> {
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"valor deve ser positivo"</span>)
+    }
+    <span class="keyword">if</span> valor > c.Saldo {
+        <span class="keyword">return</span> fmt.<span class="function">Errorf</span>(<span class="string">"saldo insuficiente"</span>)
+    }
+    c.Saldo -= valor
+    fmt.<span class="function">Printf</span>(<span class="string">"Saque de R$ %.2f realizado\n"</span>, valor)
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> (c *ContaBancaria) <span class="function">Transferir</span>(destino *ContaBancaria, valor <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="keyword">if</span> err := c.<span class="function">Sacar</span>(valor); err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> err
+    }
+    <span class="keyword">return</span> destino.<span class="function">Depositar</span>(valor)
+}
+
+<span class="keyword">func</span> (c ContaBancaria) <span class="function">ExibirSaldo</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"Conta: %s | Titular: %s | Saldo: R$ %.2f\n"</span>, 
+        c.Numero, c.Titular, c.Saldo)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    conta1 := <span class="function">NovaConta</span>(<span class="string">"001"</span>, <span class="string">"João Silva"</span>, <span class="number">1000.00</span>)
+    conta2 := <span class="function">NovaConta</span>(<span class="string">"002"</span>, <span class="string">"Maria Santos"</span>, <span class="number">500.00</span>)
+    
+    conta1.<span class="function">ExibirSaldo</span>()
+    conta2.<span class="function">ExibirSaldo</span>()
+    
+    conta1.<span class="function">Depositar</span>(<span class="number">500.00</span>)
+    conta1.<span class="function">Sacar</span>(<span class="number">200.00</span>)
+    
+    <span class="keyword">if</span> err := conta1.<span class="function">Transferir</span>(conta2, <span class="number">300.00</span>); err != <span class="keyword">nil</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Erro:"</span>, err)
+    }
+    
+    fmt.<span class="function">Println</span>(<span class="string">"\nSaldos finais:"</span>)
+    conta1.<span class="function">ExibirSaldo</span>()
+    conta2.<span class="function">ExibirSaldo</span>()
+}</code></pre>
+            </div>
+            
+            <h3>Sistema de E-commerce</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">ecommerce.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Produto <span class="keyword">struct</span> {
+    ID    <span class="type">int</span>
+    Nome  <span class="type">string</span>
+    Preco <span class="type">float64</span>
+}
+
+<span class="keyword">type</span> ItemCarrinho <span class="keyword">struct</span> {
+    Produto
+    Quantidade <span class="type">int</span>
+}
+
+<span class="keyword">func</span> (i ItemCarrinho) <span class="function">Subtotal</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> i.Preco * <span class="type">float64</span>(i.Quantidade)
+}
+
+<span class="keyword">type</span> Carrinho <span class="keyword">struct</span> {
+    Items []ItemCarrinho
+}
+
+<span class="keyword">func</span> (c *Carrinho) <span class="function">Adicionar</span>(produto Produto, quantidade <span class="type">int</span>) {
+    <span class="comment">// Verifica se produto já existe</span>
+    <span class="keyword">for</span> i, item := <span class="keyword">range</span> c.Items {
+        <span class="keyword">if</span> item.ID == produto.ID {
+            c.Items[i].Quantidade += quantidade
+            fmt.<span class="function">Printf</span>(<span class="string">"%s: quantidade atualizada para %d\n"</span>, 
+                produto.Nome, c.Items[i].Quantidade)
+            <span class="keyword">return</span>
+        }
+    }
+    
+    <span class="comment">// Adiciona novo item</span>
+    c.Items = <span class="function">append</span>(c.Items, ItemCarrinho{
+        Produto:    produto,
+        Quantidade: quantidade,
+    })
+    fmt.<span class="function">Printf</span>(<span class="string">"%s adicionado ao carrinho\n"</span>, produto.Nome)
+}
+
+<span class="keyword">func</span> (c *Carrinho) <span class="function">Remover</span>(produtoID <span class="type">int</span>) {
+    <span class="keyword">for</span> i, item := <span class="keyword">range</span> c.Items {
+        <span class="keyword">if</span> item.ID == produtoID {
+            c.Items = <span class="function">append</span>(c.Items[:i], c.Items[i+<span class="number">1</span>:]...)
+            fmt.<span class="function">Println</span>(<span class="string">"Produto removido"</span>)
+            <span class="keyword">return</span>
+        }
+    }
+}
+
+<span class="keyword">func</span> (c Carrinho) <span class="function">Total</span>() <span class="type">float64</span> {
+    total := <span class="number">0.0</span>
+    <span class="keyword">for</span> _, item := <span class="keyword">range</span> c.Items {
+        total += item.<span class="function">Subtotal</span>()
+    }
+    <span class="keyword">return</span> total
+}
+
+<span class="keyword">func</span> (c Carrinho) <span class="function">Exibir</span>() {
+    fmt.<span class="function">Println</span>(<span class="string">"\n=== CARRINHO DE COMPRAS ==="</span>)
+    
+    <span class="keyword">if</span> <span class="function">len</span>(c.Items) == <span class="number">0</span> {
+        fmt.<span class="function">Println</span>(<span class="string">"Carrinho vazio"</span>)
+        <span class="keyword">return</span>
+    }
+    
+    <span class="keyword">for</span> _, item := <span class="keyword">range</span> c.Items {
+        fmt.<span class="function">Printf</span>(<span class="string">"%s - R$ %.2f x %d = R$ %.2f\n"</span>,
+            item.Nome, item.Preco, item.Quantidade, item.<span class="function">Subtotal</span>())
+    }
+    
+    fmt.<span class="function">Printf</span>(<span class="string">"\nTotal: R$ %.2f\n"</span>, c.<span class="function">Total</span>())
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    carrinho := Carrinho{}
+    
+    p1 := Produto{<span class="number">1</span>, <span class="string">"Mouse"</span>, <span class="number">29.90</span>}
+    p2 := Produto{<span class="number">2</span>, <span class="string">"Teclado"</span>, <span class="number">89.90</span>}
+    p3 := Produto{<span class="number">3</span>, <span class="string">"Monitor"</span>, <span class="number">599.00</span>}
+    
+    carrinho.<span class="function">Adicionar</span>(p1, <span class="number">2</span>)
+    carrinho.<span class="function">Adicionar</span>(p2, <span class="number">1</span>)
+    carrinho.<span class="function">Adicionar</span>(p3, <span class="number">1</span>)
+    carrinho.<span class="function">Adicionar</span>(p1, <span class="number">1</span>)  <span class="comment">// Adiciona mais um mouse</span>
+    
+    carrinho.<span class="function">Exibir</span>()
+    
+    carrinho.<span class="function">Remover</span>(<span class="number">2</span>)
+    carrinho.<span class="function">Exibir</span>()
+}</code></pre>
+            </div>
+            
+            <h3>Sistema de Gerenciamento de Funcionários</h3>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-title">funcionarios.go</span>
+                </div>
+                <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"fmt"</span>
+
+<span class="keyword">type</span> Funcionario <span class="keyword">struct</span> {
+    Nome      <span class="type">string</span>
+    Cargo     <span class="type">string</span>
+    Salario   <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> (f Funcionario) <span class="function">ExibirInfo</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"Nome: %s | Cargo: %s | Salário: R$ %.2f\n"</span>,
+        f.Nome, f.Cargo, f.Salario)
+}
+
+<span class="keyword">type</span> Gerente <span class="keyword">struct</span> {
+    Funcionario
+    Departamento <span class="type">string</span>
+    Bonus        <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> (g Gerente) <span class="function">SalarioTotal</span>() <span class="type">float64</span> {
+    <span class="keyword">return</span> g.Salario + g.Bonus
+}
+
+<span class="keyword">func</span> (g Gerente) <span class="function">ExibirInfo</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"Nome: %s | Cargo: %s | Depto: %s | Salário Total: R$ %.2f\n"</span>,
+        g.Nome, g.Cargo, g.Departamento, g.<span class="function">SalarioTotal</span>())
+}
+
+<span class="keyword">type</span> Desenvolvedor <span class="keyword">struct</span> {
+    Funcionario
+    Linguagens []<span class="type">string</span>
+    Nivel      <span class="type">string</span>
+}
+
+<span class="keyword">func</span> (d Desenvolvedor) <span class="function">ExibirInfo</span>() {
+    fmt.<span class="function">Printf</span>(<span class="string">"Nome: %s | Cargo: %s | Nível: %s | Salário: R$ %.2f\n"</span>,
+        d.Nome, d.Cargo, d.Nivel, d.Salario)
+    fmt.<span class="function">Printf</span>(<span class="string">"Linguagens: %v\n"</span>, d.Linguagens)
+}
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    gerente := Gerente{
+        Funcionario: Funcionario{
+            Nome:    <span class="string">"Ana Silva"</span>,
+            Cargo:   <span class="string">"Gerente de TI"</span>,
+            Salario: <span class="number">8000.00</span>,
+        },
+        Departamento: <span class="string">"Tecnologia"</span>,
+        Bonus:        <span class="number">2000.00</span>,
+    }
+    
+    dev := Desenvolvedor{
+        Funcionario: Funcionario{
+            Nome:    <span class="string">"Carlos Santos"</span>,
+            Cargo:   <span class="string">"Desenvolvedor"</span>,
+            Salario: <span class="number">6000.00</span>,
+        },
+        Linguagens: []<span class="type">string</span>{<span class="string">"Go"</span>, <span class="string">"Python"</span>, <span class="string">"JavaScript"</span>},
+        Nivel:      <span class="string">"Sênior"</span>,
+    }
+    
+    fmt.<span class="function">Println</span>(<span class="string">"=== INFORMAÇÕES DOS FUNCIONÁRIOS ==="</span>)
+    gerente.<span class="function">ExibirInfo</span>()
+    fmt.<span class="function">Println</span>()
+    dev.<span class="function">ExibirInfo</span>()
+}</code></pre>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Resumo e Boas Práticas</h2>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas - Structs</h3>
+                <ul class="list">
+                    <li>Use PascalCase para nomes de structs exportadas</li>
+                    <li>Use camelCase para structs privadas</li>
+                    <li>Inicialize structs com valores nomeados para clareza</li>
+                    <li>Agrupe campos relacionados em structs aninhadas</li>
+                    <li>Use ponteiros para structs grandes para evitar cópias</li>
+                    <li>Considere criar funções construtoras (New...)</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas - Métodos</h3>
+                <ul class="list">
+                    <li>Use pointer receiver quando precisar modificar o estado</li>
+                    <li>Use pointer receiver para structs grandes</li>
+                    <li>Seja consistente: se um método usa pointer, todos devem usar</li>
+                    <li>Métodos de leitura podem usar value receiver</li>
+                    <li>Nomeie métodos com verbos (Calcular, Processar, Obter)</li>
+                    <li>Mantenha métodos pequenos e focados em uma responsabilidade</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box success">
+                <h3 style="margin-bottom: 15px;">✅ Boas Práticas - Composição</h3>
+                <ul class="list">
+                    <li>Prefira composição sobre herança (Go não tem herança)</li>
+                    <li>Use embedding para reutilizar comportamento</li>
+                    <li>Seja explícito quando houver conflito de nomes</li>
+                    <li>Documente relacionamentos entre tipos</li>
+                    <li>Use interfaces para polimorfismo</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box warning">
+                <h3 style="margin-bottom: 15px;">⚠️ Erros Comuns</h3>
+                <ul class="list">
+                    <li>Esquecer de usar ponteiro quando precisa modificar</li>
+                    <li>Misturar value e pointer receivers no mesmo tipo</li>
+                    <li>Não inicializar campos de struct aninhada</li>
+                    <li>Exportar campos que deveriam ser privados</li>
+                    <li>Criar métodos muito grandes e complexos</li>
+                    <li>Não validar dados no construtor</li>
+                    <li>Copiar structs grandes por valor</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box info">
+                <h3 style="margin-bottom: 15px;">💡 Quando Usar Cada Abordagem</h3>
+                <ul class="list">
+                    <li><strong>Value Receiver:</strong> Tipos pequenos, operações de leitura, imutabilidade</li>
+                    <li><strong>Pointer Receiver:</strong> Modificação de estado, structs grandes, consistência</li>
+                    <li><strong>Structs:</strong> Agrupar dados relacionados, modelar entidades</li>
+                    <li><strong>Embedded Structs:</strong> Reutilizar campos e métodos, composição</li>
+                    <li><strong>Métodos:</strong> Comportamento associado a dados</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>Exercícios Práticos</h2>
+            
+            <div class="highlight-box">
+                <h3 style="margin-bottom: 15px;">🎯 Desafios</h3>
+                
+                <p><strong>1. Sistema de Biblioteca</strong></p>
+                <p style="margin-bottom: 15px;">Crie structs para Livro, Autor e Biblioteca. Implemente métodos para adicionar/remover livros, buscar por autor, verificar disponibilidade.</p>
+                
+                <p><strong>2. Gerenciador de Tarefas</strong></p>
+                <p style="margin-bottom: 15px;">Crie um sistema com structs Tarefa e ListaTarefas. Métodos: adicionar, completar, remover, listar pendentes, listar concluídas.</p>
+                
+                <p><strong>3. Sistema de Notas</strong></p>
+                <p style="margin-bottom: 15px;">Crie structs para Aluno, Disciplina e Nota. Calcule média, verificar aprovação, listar aprovados/reprovados.</p>
+                
+                <p><strong>4. Calculadora de Formas Geométricas</strong></p>
+                <p style="margin-bottom: 15px;">Crie structs para Círculo, Retângulo, Triângulo. Implemente métodos para calcular área e perímetro de cada forma.</p>
+                
+                <p><strong>5. Sistema de Pedidos</strong></p>
+                <p style="margin-bottom: 15px;">Crie structs para Cliente, Produto, ItemPedido e Pedido. Implemente cálculo de total, aplicação de desconto, histórico de pedidos.</p>
+                
+                <p><strong>6. Agenda de Contatos</strong></p>
+                <p style="margin-bottom: 15px;">Crie structs para Contato e Agenda. Métodos: adicionar, buscar, atualizar, remover, listar todos os contatos.</p>
+                
+                <p><strong>7. Sistema de Veículos</strong></p>
+                <p style="margin-bottom: 15px;">Crie struct base Veiculo e use embedding para Carro e Moto. Adicione métodos específicos para cada tipo.</p>
+                
+                <p><strong>8. Calculadora Financeira</strong></p>
+                <p>Crie struct ContaInvestimento com métodos para calcular rendimento, juros compostos, valor futuro com aportes mensais.</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>📚 Continue praticando e explore a documentação oficial do Go em <strong>go.dev</strong></p>
+            <p>💡 Próximo tópico: Ponteiros e sua Importância em Go</p>
+        </footer>
+    </div>
+</body>
+</html>
